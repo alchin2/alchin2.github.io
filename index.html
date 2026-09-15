@@ -5,696 +5,711 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alexander Chin - Portfolio</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
-    <!-- Background decor -->
-    <div class="bg-decor" aria-hidden="true">
-        <div class="bg-rings"></div>
+    <!-- Ambient playfield, shared by gate and stage -->
+    <div class="backdrop" aria-hidden="true">
+        <div class="backdrop-glow"></div>
     </div>
 
-    <!-- Main Content -->
-    <div class="main-container">
-        <div class="content-wrapper">
-            <!-- Left Column - Profile Section -->
-            <aside class="profile-column" id="profile">
-                <div class="profile-card">
-                    <div class="profile-image hit-circle">
-                        <span class="bezel-ring" aria-hidden="true"></span>
-                        <span class="bezel-hand" aria-hidden="true"></span>
-                        <img src="etc/picture.jpeg" alt="Alexander Chin" />
+    <!-- Gate: the start screen -->
+    <div class="gate" id="gate">
+        <h1 class="gate-name">Alexander Chin</h1>
+        <p class="gate-tagline">Math-CS + Cognitive Science (ML/NC) · UC San Diego</p>
+        <p class="gate-hint" id="gateHint">Click to select a section</p>
+    </div>
 
+    <!-- Persistent hit-circle: centered on the gate, docks top-left once entered -->
+    <button type="button" class="hit-circle" id="hitCircle" aria-haspopup="true" aria-expanded="false"
+        aria-label="Open section menu">
+        <span class="hit-ring" aria-hidden="true"></span>
+        <span class="hit-photo">
+            <img src="etc/picture.jpeg" alt="" />
+        </span>
+    </button>
+
+    <!-- Radial mode-select menu, shared anchor with the hit-circle -->
+    <nav class="mode-fan" id="modeFan" aria-label="Section navigation">
+        <button type="button" class="mode-item" data-section="about" style="--i:0">
+            <span class="mode-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="8" r="4" />
+                    <path d="M4 21c0-4 4-7 8-7s8 3 8 7" />
+                </svg>
+            </span>
+            <span class="mode-label">About</span>
+        </button>
+        <button type="button" class="mode-item" data-section="experience" style="--i:1">
+            <span class="mode-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="7" width="18" height="13" rx="2" />
+                    <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    <path d="M3 12h18" />
+                </svg>
+            </span>
+            <span class="mode-label">Experience</span>
+        </button>
+        <button type="button" class="mode-item" data-section="projects" style="--i:2">
+            <span class="mode-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M8 5L3 12l5 7" />
+                    <path d="M16 5l5 7-5 7" />
+                </svg>
+            </span>
+            <span class="mode-label">Projects</span>
+        </button>
+        <button type="button" class="mode-item" data-section="resume" style="--i:3">
+            <span class="mode-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 3v12" />
+                    <path d="M7 10l5 5 5-5" />
+                    <path d="M5 21h14" />
+                </svg>
+            </span>
+            <span class="mode-label">Resume</span>
+        </button>
+        <button type="button" class="mode-item" data-section="contact" style="--i:4">
+            <span class="mode-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="4" width="20" height="16" rx="2" />
+                    <path d="M22 6L12 13L2 6" />
+                </svg>
+            </span>
+            <span class="mode-label">Contact</span>
+        </button>
+        <button type="button" class="mode-item" data-section="blog" style="--i:5">
+            <span class="mode-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 20h9" />
+                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                </svg>
+            </span>
+            <span class="mode-label">Blog</span>
+        </button>
+    </nav>
+
+    <!-- Stage: entered state, holds the section panels -->
+    <main class="stage" id="stage" hidden>
+        <header class="stage-bar">
+            <button type="button" class="stage-exit" id="stageExit" aria-label="Back to start screen">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 6L6 18" />
+                    <path d="M6 6l12 12" />
+                </svg>
+            </button>
+        </header>
+
+        <div class="stage-panels">
+            <!-- About -->
+            <section class="panel" id="panel-about" data-panel="about">
+                <h2>About Me</h2>
+                <p class="panel-overview">I'm a Math-CS and Cognitive Science double major at UC San Diego, building
+                    full-stack tools, ML pipelines, and multi-agent systems. Outside of class and code, I play
+                    racket sports, perform with LionDanceMe, and shoot photo/video
+                    for fun!</p>
+
+                <h3 class="panel-subhead">Education</h3>
+                <div class="record">
+                    <div class="record-head">
+                        <div class="record-main">
+                            <h4>University of California - San Diego</h4>
+                            <p class="record-line">B.S. Mathematics-Computer Science</p>
+                            <p class="record-line">B.S. Cognitive Science Spec. Machine Learning and Neural
+                                Computation</p>
+                        </div>
+                        <div class="record-meta">
+                            <span class="record-place">La Jolla, CA</span>
+                            <span class="record-date">Sep. 2025 – Jun. 2028</span>
+                        </div>
+                    </div>
+                    <p class="record-note"><strong>Activities:</strong> Association of Computing Machinery, Society
+                        of Undergraduate Mathematics Students, Data Science Society, Triton Engineering Student
+                        Society, Badminton Club</p>
+                </div>
+
+                <div class="record">
+                    <div class="record-head">
+                        <div class="record-main">
+                            <h4>City College of San Francisco</h4>
+                            <p class="record-line">A.S. Mathematics, Highest Honors</p>
+                        </div>
+                        <div class="record-meta">
+                            <span class="record-place">San Francisco, CA</span>
+                            <span class="record-date">Aug. 2024 – May. 2025</span>
+                        </div>
+                    </div>
+                    <p class="record-note"><strong>Activities:</strong> Student Tutor, Growth Sector Summer Bridge
+                    </p>
+                </div>
+
+                <h3 class="panel-subhead">Technical Skills</h3>
+                <div class="skill-group">
+                    <h4 class="skill-group-title">Programming Languages</h4>
+                    <div class="chip-row">
+                        <span class="chip chip--tag">Python</span>
+                        <span class="chip chip--tag">Java</span>
+                        <span class="chip chip--tag">SQL</span>
+                        <span class="chip chip--tag">Git</span>
+                        <span class="chip chip--tag">HTML</span>
+                        <span class="chip chip--tag">CSS</span>
+                        <span class="chip chip--tag">JavaScript</span>
+                        <span class="chip chip--tag">TypeScript</span>
+                        <span class="chip chip--tag">Go</span>
+                    </div>
+                </div>
+
+                <div class="skill-group">
+                    <h4 class="skill-group-title">Libraries / Frameworks</h4>
+                    <div class="chip-row">
+                        <span class="chip chip--tag">NumPy</span>
+                        <span class="chip chip--tag">Pandas</span>
+                        <span class="chip chip--tag">PyTorch</span>
+                        <span class="chip chip--tag">Matplotlib</span>
+                        <span class="chip chip--tag">React</span>
+                        <span class="chip chip--tag">Scikit-learn</span>
+                        <span class="chip chip--tag">FastAPI</span>
+                        <span class="chip chip--tag">Node.js</span>
+                        <span class="chip chip--tag">REST APIs</span>
+                        <span class="chip chip--tag">AWS</span>
+                        <span class="chip chip--tag">Supabase</span>
+                    </div>
+                </div>
+
+                <div class="skill-group">
+                    <h4 class="skill-group-title">Coursework</h4>
+                    <div class="chip-row">
+                        <span class="chip chip--tag">Data Structures &amp; Algorithms</span>
+                        <span class="chip chip--tag">Systems Programming</span>
+                        <span class="chip chip--tag">Discrete Math</span>
+                        <span class="chip chip--tag">Machine Learning</span>
+                        <span class="chip chip--tag">Convex Optimization</span>
+                        <span class="chip chip--tag">Linear Programming</span>
+                        <span class="chip chip--tag">Probability &amp; Statistics</span>
+                        <span class="chip chip--tag">Stochastic Processes</span>
+                        <span class="chip chip--tag">Graph Theory</span>
+                        <span class="chip chip--tag">Object Oriented Programming</span>
+                    </div>
+                </div>
+
+                <h3 class="panel-subhead">Outside of Code</h3>
+                <div class="chip-row">
+                    <span class="chip chip--tag chip--accent">Badminton</span>
+                    <span class="chip chip--tag chip--accent">Video Games</span>
+                    <span class="chip chip--tag chip--accent">Lion Dance</span>
+                    <span class="chip chip--tag chip--accent">Basketball</span>
+                    <span class="chip chip--tag chip--accent">Photography &amp; Video</span>
+                </div>
+            </section>
+
+            <!-- Experience -->
+            <section class="panel" id="panel-experience" data-panel="experience" hidden>
+                <h2>Experience</h2>
+
+                <h3 class="panel-subhead">Roles</h3>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-head">
+                            <h4>Software Developer (Contract)</h4>
+                            <span class="timeline-date">Jun. 2026 – Current</span>
+                        </div>
+                        <p class="timeline-org">Essenergy Inc</p>
+                        <ul class="timeline-bullets">
+                            <li>Developing backend automation services</li>
+                        </ul>
                     </div>
 
-                    <!-- Section menu -->
-                    <nav class="fan-menu" id="fan-menu" aria-label="Section navigation">
-                        <button type="button" class="fan-item is-active" data-tab="about">
-                            <span class="fan-icon">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <circle cx="12" cy="8" r="4" />
-                                    <path d="M4 21c0-4 4-7 8-7s8 3 8 7" />
-                                </svg>
-                            </span>
-                            <span class="fan-label">About</span>
-                        </button>
-                        <button type="button" class="fan-item" data-tab="experience">
-                            <span class="fan-icon">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="3" y="7" width="18" height="13" rx="2" />
-                                    <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                                    <path d="M3 12h18" />
-                                </svg>
-                            </span>
-                            <span class="fan-label">Experience</span>
-                        </button>
-                        <button type="button" class="fan-item" data-tab="projects">
-                            <span class="fan-icon">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M8 5L3 12l5 7" />
-                                    <path d="M16 5l5 7-5 7" />
-                                </svg>
-                            </span>
-                            <span class="fan-label">Projects</span>
-                        </button>
-                        <button type="button" class="fan-item" data-tab="resume">
-                            <span class="fan-icon">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M12 3v12" />
-                                    <path d="M7 10l5 5 5-5" />
-                                    <path d="M5 21h14" />
-                                </svg>
-                            </span>
-                            <span class="fan-label">Resume</span>
-                        </button>
-                    </nav>
-
-                    <p class="identity-eyebrow">Software + ML · UC San Diego</p>
-                    <h1>Alexander Chin<span class="osu-bang"></span></h1>
-                    <p class="rank-tagline">Feel free to reachout below!</p>
-
-                    <div class="contact-info">
-                        <div class="contact-item">
-                            <svg class="contact-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path
-                                    d="M16 8C17.5913 8 19.1174 8.63214 20.2426 9.75736C21.3679 10.8826 22 12.4087 22 14V21H18V14C18 13.4696 17.7893 12.9609 17.4142 12.5858C17.0391 12.2107 16.5304 12 16 12C15.4696 12 14.9609 12.2107 14.5858 12.5858C14.2107 12.9609 14 13.4696 14 14V21H10V14C10 12.4087 10.6321 10.8826 11.7574 9.75736C12.8826 8.63214 14.4087 8 16 8Z"
-                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" />
-                                <path d="M6 9H2V21H6V9Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" />
-                                <path
-                                    d="M4 6C5.10457 6 6 5.10457 6 4C6 2.89543 5.10457 2 4 2C2.89543 2 2 2.89543 2 4C2 5.10457 2.89543 6 4 6Z"
-                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" />
-                            </svg>
-                            <a href="https://linkedin.com/in/alexanderzchin" target="_blank">alexanderzchin</a>
+                    <div class="timeline-item">
+                        <div class="timeline-head">
+                            <h4>Data Analyst Intern</h4>
+                            <span class="timeline-date">Jun. 2026 – Current</span>
                         </div>
-                        <div class="contact-item">
-                            <svg class="contact-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path
-                                    d="M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4Z"
-                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" />
-                                <path d="M22 6L12 13L2 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" />
-                            </svg>
-                            <a href="mailto:azchin@ucsd.edu">azchin@ucsd.edu</a>
+                        <p class="timeline-org">IDX Exchange</p>
+                        <ul class="timeline-bullets">
+                            <li>Develop Python ETL pipelines to ingest, clean, and transform over 60K property
+                                listings monthly, deployed interactive Tableau dashboards that visualize KPIs and
+                                regional housing trends</li>
+                            <li>Engineer feature extraction and outlier detection pipelines to identify anomalous
+                                listings and generate actionable market intelligence reports.</li>
+                        </ul>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-head">
+                            <h4>Undergraduate Research Assistant</h4>
+                            <span class="timeline-date">Mar. 2026 – Current</span>
                         </div>
-                        <div class="contact-item">
-                            <svg class="contact-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path
-                                    d="M12 2C6.477 2 2 6.477 2 12C2 16.418 4.865 20.166 8.839 21.49C9.339 21.582 9.52 21.272 9.52 21.006C9.52 20.766 9.511 20.149 9.506 19.324C6.726 19.928 6.14 17.984 6.14 17.984C5.686 16.832 5.031 16.525 5.031 16.525C4.125 15.906 5.101 15.918 5.101 15.918C6.104 15.989 6.632 16.949 6.632 16.949C7.523 18.474 8.968 18.033 9.544 17.778C9.635 17.126 9.897 16.685 10.187 16.435C7.967 16.182 5.636 15.324 5.636 11.474C5.636 10.375 6.028 9.476 6.666 8.761C6.562 8.508 6.216 7.485 6.764 6.095C6.764 6.095 7.604 5.826 9.492 7.106C10.29 6.884 11.144 6.773 11.992 6.769C12.839 6.773 13.692 6.884 14.492 7.106C16.378 5.826 17.216 6.095 17.216 6.095C17.766 7.485 17.42 8.508 17.318 8.761C17.957 9.476 18.347 10.375 18.347 11.474C18.347 15.337 16.012 16.178 13.784 16.425C14.148 16.738 14.475 17.357 14.475 18.298C14.475 19.648 14.463 20.732 14.463 21.006C14.463 21.276 14.641 21.59 15.15 21.488C19.122 20.162 22 16.416 22 12C22 6.477 17.523 2 12 2Z"
-                                    fill="currentColor" />
+                        <p class="timeline-org">Visual Learning Lab @ UCSD</p>
+                        <ul class="timeline-bullets">
+                            <li>Expanded the lab's Python embedding toolkit across CLIP, Hugging Face, DINO, and
+                                other vision models with parallel, asynchronous batch processing.</li>
+                            <li>Improved reproducibility of infant eye-tracking research by processing data from 100+
+                                participants and 7+ GB of data through validated, documented pipelines.</li>
+                        </ul>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-head">
+                            <h4>Software Developer</h4>
+                            <span class="timeline-date">Jan. 2026 – Apr. 2026</span>
+                        </div>
+                        <p class="timeline-org">Data Science Society (DS3) @ UCSD, La Jolla, CA</p>
+                        <ul class="timeline-bullets">
+                            <li>Built a full-stack course planning and visualization web app used by UCSD students;
+                                placed 1st out of 12 teams in a quarterly competition judged by HDSI faculty and
+                                industry engineers.</li>
+                            <li>Engineered Python and Go data pipelines to process 2,500+ course records and
+                                recursively parse prerequisite graphs into AST-based tree structures.</li>
+                        </ul>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-head">
+                            <h4>Undergraduate Research Assistant</h4>
+                            <span class="timeline-date">Jan. 2026 – Apr. 2026</span>
+                        </div>
+                        <p class="timeline-org">The Econ Lab @ UCSD</p>
+                        <ul class="timeline-bullets">
+                            <li>Conducted econometric regression analysis in STATA to evaluate regional economic
+                                impacts of educational policy spillovers using IPUMS and World Bank data</li>
+                            <li>Standardized 10,000+ points census records across datasets for analysis in STATA,
+                                presented findings to research team.</li>
+                        </ul>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-head">
+                            <h4>Research Intern</h4>
+                            <span class="timeline-date">Aug. 2025 – Sep. 2025</span>
+                        </div>
+                        <p class="timeline-org">UC San Diego Department of Mathematics</p>
+                        <ul class="timeline-bullets">
+                            <li>Participated in the Transfer Research Experience Program in the Mathematics
+                                Department, implementing and training CNNs and image classification and clustering
+                                models</li>
+                            <li>Developed and optimized classification and clustering workflows using NumPy,
+                                Pandas, and PyTorch, reducing model errors by 40% through rapid iteration and
+                                parameter tuning</li>
+                        </ul>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-head">
+                            <h4>Engineering Pre-Apprenticeship</h4>
+                            <span class="timeline-date">Jun. 2025 – Aug. 2025</span>
+                        </div>
+                        <p class="timeline-org">Growth Sector, San Francisco, CA</p>
+                        <ul class="timeline-bullets">
+                            <li>Applied foundational civil engineering concepts by modeling infrastructure systems
+                                in Revit 2016, Bridge Designer Software and CAD</li>
+                            <li>Programmed an Arduino microcontroller to wirelessly control a vehicle across a
+                                student-built bridge, integrating coding, electronics, and mechanical design</li>
+                        </ul>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-head">
+                            <h4>Academic Tutor</h4>
+                            <span class="timeline-date">Jan. 2025 – Jun. 2025</span>
+                        </div>
+                        <p class="timeline-org">City College of San Francisco, San Francisco, CA</p>
+                        <ul class="timeline-bullets">
+                            <li>Tutored 20+ students weekly in calculus and physics, improving average student
+                                grades by one letter grade through targeted problem-solving support</li>
+                            <li>Provided 10+ hours of weekly office hours in collaboration with faculty, improving
+                                student pass rates in calculus and physics</li>
+                        </ul>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-head">
+                            <h4>NASA Community College Aerospace Scholar</h4>
+                            <span class="timeline-date">Jan. 2025 – Apr. 2025</span>
+                        </div>
+                        <p class="timeline-org">NASA Goddard Space Flight Center (Remote)</p>
+                        <ul class="timeline-bullets">
+                            <li>Engineered a simulated Mars rover mission plan, balancing latency, power limits,
+                                data transmission, and reliability for success</li>
+                            <li>Analyzed telemetry and communication strategies for remote robotic systems to
+                                optimize mission efficiency</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3 class="panel-subhead">Volunteering &amp; Leadership</h3>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-head">
+                            <h4>Project Events Director</h4>
+                            <span class="timeline-date">May. 2026 – Present</span>
+                        </div>
+                        <p class="timeline-org">ACM @ UCSD</p>
+                        <ul class="timeline-bullets">
+                            <li>Hosting Events and Workshops for the projects community.</li>
+                        </ul>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-head">
+                            <h4>AI Projects Mentor</h4>
+                            <span class="timeline-date">Mar. 2026 – Present</span>
+                        </div>
+                        <p class="timeline-org">ACM @ UCSD</p>
+                        <ul class="timeline-bullets">
+                            <li>Mentored and directed teams through the end-to-end ML lifecycle, provided technical
+                                guidance on model architecture selection, loss function optimization, and
+                                deployment.</li>
+                            <li>Lead weekly standups to unblock project progress and coordinate pacing,
+                                collaboration, and quality across the team.</li>
+                        </ul>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-head">
+                            <h4>Operations Manager</h4>
+                            <span class="timeline-date">Aug. 2023 – Jun. 2025</span>
+                        </div>
+                        <p class="timeline-org">LionDanceMe, San Francisco, CA</p>
+                        <ul class="timeline-bullets">
+                            <li>Collected, processed, and visualized availability data for 100+ student members to
+                                coordinate practice scheduling</li>
+                            <li>Built a digital attendance tracking system that logged 750+ events, replacing
+                                manual record-keeping and reducing manual workload</li>
+                            <li>Led teams on-site at performances, serving as primary contact with event managers
+                                and clients; also performed as a dancer</li>
+                        </ul>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-head">
+                            <h4>Volunteer Photographer/Videographer</h4>
+                            <span class="timeline-date">Aug. 2024 – Jun. 2025</span>
+                        </div>
+                        <p class="timeline-org">Bert Hsu Academy, San Francisco, CA</p>
+                        <ul class="timeline-bullets">
+                            <li>Scripted, recorded, and edited video content for social media channels, and
+                                photographed students for annual yearbook production</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Projects -->
+            <section class="panel" id="panel-projects" data-panel="projects" hidden>
+                <h2>Projects</h2>
+
+                <h3 class="panel-subhead">Shipped</h3>
+
+                <div class="entry">
+                    <div class="entry-head">
+                        <h4>SafeStreets</h4>
+                        <div class="entry-tags">
+                            <span class="chip chip--gold"><span class="rank-dot" data-rank="S">S</span>Best Use of Claude — CalHacks AI 2026</span>
+                            <a class="chip chip--link" href="https://github.com/kach0w/cal-hacks-ai"
+                                target="_blank">GitHub ↗</a>
+                        </div>
+                    </div>
+                    <p class="entry-context">Built at UC Berkeley AI Hackathon 3.0</p>
+                    <div class="chip-row entry-tech-row"><span class="chip chip--tag chip--tech">Claude Vision</span><span class="chip chip--tag chip--tech">Fetch.ai uAgents</span><span class="chip chip--tag chip--tech">Browserbase</span><span class="chip chip--tag chip--tech">Redis</span><span class="chip chip--tag chip--tech">Mapbox</span></div>
+                    <p class="entry-desc">Civic tech tool that uses Claude's vision capabilities to flag dangerous
+                        street intersections and auto-generate civic outreach pushing for fixes.</p>
+                </div>
+
+                <div class="entry">
+                    <div class="entry-head">
+                        <h4>ClassGraph</h4>
+                        <div class="entry-tags">
+                            <span class="chip chip--gold"><span class="rank-dot" data-rank="S">S</span>1st Place — DS3 W26 Projects</span>
+                            <a class="chip chip--link" href="https://github.com/nehalc200/classgraph"
+                                target="_blank">GitHub ↗</a>
+                        </div>
+                    </div>
+                    <div class="chip-row entry-tech-row"><span class="chip chip--tag chip--tech">Python</span><span class="chip chip--tag chip--tech">Go</span><span class="chip chip--tag chip--tech">React</span><span class="chip chip--tag chip--tech">TypeScript</span><span class="chip chip--tag chip--tech">D3.js</span></div>
+                    <p class="entry-desc">Engineered scraping pipelines to collect and transform 2,500+ courses into
+                        a structured SQL database with AST-backed representations. Designed a TypeScript AST-based
+                        prerequisite resolver parsing nested AND/OR logic and rendering dependency DAGs in D3.js. A
+                        CI/CD pipeline auto-scrapes and republishes new courses each quarter.</p>
+                </div>
+
+                <div class="entry">
+                    <div class="entry-head">
+                        <h4>SwapU — Autonomous Item-to-Item Marketplace</h4>
+                        <div class="entry-tags">
+                            <a class="chip chip--link" href="https://github.com/alchin2/swapu" target="_blank">GitHub
+                                ↗</a>
+                        </div>
+                    </div>
+                    <p class="entry-context">Built at DiamondHacks 2026</p>
+                    <div class="chip-row entry-tech-row"><span class="chip chip--tag chip--tech">Fetch.ai</span><span class="chip chip--tag chip--tech">BrowserUse</span><span class="chip chip--tag chip--tech">FastAPI</span><span class="chip chip--tag chip--tech">React</span><span class="chip chip--tag chip--tech">Supabase</span><span class="chip chip--tag chip--tech">AWS</span></div>
+                    <p class="entry-desc">Multi-agent student trading platform where autonomous Fetch.ai agents
+                        greedily negotiate multi-item trades on behalf of students; integrated BrowserUse for
+                        real-time market pricing and confidence scoring. Personally built the FastAPI backend
+                        framework (REST + WebSocket controllers, Supabase PostgreSQL, AWS S3), the BrowserUse
+                        pricing features, and authentication.</p>
+                </div>
+
+                <div class="entry">
+                    <div class="entry-head">
+                        <h4>WebReg to ICS</h4>
+                        <div class="entry-tags">
+                            <a class="chip chip--link" href="https://github.com/alchin2/webreg-to-ics"
+                                target="_blank">GitHub ↗</a>
+                        </div>
+                    </div>
+                    <div class="chip-row entry-tech-row"><span class="chip chip--tag chip--tech">Python</span><span class="chip chip--tag chip--tech">FastAPI</span><span class="chip chip--tag chip--tech">PyMuPDF</span><span class="chip chip--tag chip--tech">JavaScript</span><span class="chip chip--tag chip--tech">iCalendar</span></div>
+                    <p class="entry-desc">Converts UCSD WebReg schedule PDFs into clean, importable
+                        <code>.ics</code> calendar files, with a browser-based weekly schedule preview before
+                        download. The FastAPI + PyMuPDF backend parses course data directly from the PDF, generates
+                        recurring weekly lectures, skips UCSD holidays automatically, and adds midterms and finals
+                        as one-off events. Vercel deploy still in progress.</p>
+                </div>
+
+                <div class="entry">
+                    <div class="entry-head">
+                        <h4>Spotify Recommender System</h4>
+                        <div class="entry-tags">
+                            <a class="chip chip--link" href="https://github.com/alchin2/acm-recommender-system"
+                                target="_blank">GitHub ↗</a>
+                        </div>
+                    </div>
+                    <div class="chip-row entry-tech-row"><span class="chip chip--tag chip--tech">Python</span><span class="chip chip--tag chip--tech">PyTorch</span><span class="chip chip--tag chip--tech">Pandas</span><span class="chip chip--tag chip--tech">NumPy</span></div>
+                    <p class="entry-desc">Two-tower neural collaborative filtering model to predict songs through
+                        collaborative and content-based filtering, mapping user preferences and 900,000+ tracks
+                        into a shared latent space. Fine-tuned embedding and epoch size, achieving 5.2 precision@10,
+                        0.84 ROC–AUC, and reduced validation loss by 30%.</p>
+                </div>
+
+                <div class="entry">
+                    <div class="entry-head">
+                        <h4>Quorum</h4>
+                        <div class="entry-tags">
+                            <a class="chip chip--link" href="https://github.com/samsonchang2028/JacHacks2026"
+                                target="_blank">GitHub ↗</a>
+                        </div>
+                    </div>
+                    <p class="entry-context">Built at JacHacks SF 2026</p>
+                    <div class="chip-row entry-tech-row"><span class="chip chip--tag chip--tech">Jac/jaclang</span><span class="chip chip--tag chip--tech">Python</span><span class="chip chip--tag chip--tech">LLM integration</span><span class="chip chip--tag chip--tech">Firecrawl</span><span class="chip chip--tag chip--tech">Apify</span></div>
+                    <p class="entry-desc">Civic advocacy generator that turns a community's position on a local
+                        issue into a tactical organizing kit: plain-language issue briefs, procedural playbooks
+                        with source-backed facts, three recourse paths, targeting advice that flags mismatches
+                        between impacted and decision-making zones, precedent-based strategy, bilingual outreach
+                        packet.</p>
+                </div>
+
+                <div class="entry">
+                    <div class="entry-head">
+                        <h4>Minecraft Texture Generation</h4>
+                        <div class="entry-tags">
+                            <span class="chip chip--muted"><span class="rank-dot" data-rank="C">C</span>Research</span>
+                        </div>
+                    </div>
+                    <div class="chip-row entry-tech-row"><span class="chip chip--tag chip--tech">Diffusion Models</span><span class="chip chip--tag chip--tech">VQGAN</span><span class="chip chip--tag chip--tech">VQVAE</span></div>
+                    <p class="entry-desc">Exploratory generative modeling project synthesizing Minecraft-style
+                        textures with diffusion models; currently investigating VQGAN/VQVAE approaches as a next
+                        step.</p>
+                </div>
+
+                <h3 class="panel-subhead">Active / Ongoing</h3>
+
+                <div class="entry">
+                    <div class="entry-head">
+                        <h4>TSS++</h4>
+                        <div class="entry-tags">
+                            <span class="chip chip--blue"><span class="rank-dot" data-rank="B">B</span>In Progress</span>
+                        </div>
+                    </div>
+                    <p class="entry-desc">UCSD course browser combining WebReg++-style scheduling with ClassGraph's
+                        prerequisite visualization, backed by a custom scraper against UCSD's TSS OData API.</p>
+                </div>
+
+                <div class="entry">
+                    <div class="entry-head">
+                        <h4>TroupeRoute</h4>
+                        <div class="entry-tags">
+                            <span class="chip chip--blue"><span class="rank-dot" data-rank="B">B</span>In Progress</span>
+                        </div>
+                    </div>
+                    <div class="chip-row entry-tech-row"><span class="chip chip--tag chip--tech">Google Maps API</span><span class="chip chip--tag chip--tech">Python</span><span class="chip chip--tag chip--tech">H3</span><span class="chip chip--tag chip--tech">Pandas</span><span class="chip chip--tag chip--tech">React</span></div>
+                    <p class="entry-desc">Vehicle routing optimizer for LionDanceMe operations, modeling multi-stop
+                        routing as a constrained Traveling Salesman Problem using road networks and travel-time
+                        matrices from OpenStreetMap data. Integrated OR-Tools to enforce time-window and overlap
+                        constraints across 40+ daily events, improving schedule feasibility and reducing total
+                        travel time.</p>
+                </div>
+
+                <div class="entry">
+                    <div class="entry-head">
+                        <h4>vllpy - python package</h4>
+                        <div class="entry-tags">
+                            <span class="chip chip--blue"><span class="rank-dot" data-rank="B">B</span>In Progress</span>
+                        </div>
+                    </div>
+                    <p class="entry-context">Research Assistant, UCSD</p>
+                    <div class="chip-row entry-tech-row"><span class="chip chip--tag chip--tech">Python</span><span class="chip chip--tag chip--tech">CLIP</span><span class="chip chip--tag chip--tech">Hugging Face</span><span class="chip chip--tag chip--tech">DINO</span><span class="chip chip--tag chip--tech">iCatcher+</span></div>
+                    <p class="entry-desc">Maintainer of vllpy, the lab's internal Python toolkit for multimodal and layer-specific embedding models. Added parallel and asynchronous batch processing capabilities.</p>
+                </div>
+
+            </section>
+
+            <!-- Resume -->
+            <section class="panel" id="panel-resume" data-panel="resume" hidden>
+                <h2>Resume</h2>
+                <div class="resume-card">
+                    <div class="resume-preview">
+                        <div class="resume-preview-bar">
+                            <svg class="resume-preview-icon" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
+                                <path d="M14 2v6h6" />
                             </svg>
-                            <a href="https://github.com/alchin2" target="_blank">alchin2</a>
+                            <span class="resume-preview-name">resume.pdf</span>
+                        </div>
+                        <iframe src="etc/resume.pdf" title="Alexander Chin's resume preview" loading="lazy">
+                            <p>Your browser can't preview PDFs inline.
+                                <a href="etc/resume.pdf">Open the resume directly</a> instead.
+                            </p>
+                        </iframe>
+                    </div>
+                    <div class="resume-meta">
+                        <p class="resume-meta-line">
+                            <span class="resume-meta-label">Format</span>
+                            <span class="resume-meta-value">PDF</span>
+                        </p>
+                        <p class="resume-meta-line">
+                            <span class="resume-meta-label">Size</span>
+                            <span class="resume-meta-value" data-resume-size>—</span>
+                        </p>
+                        <div class="resume-actions">
+                            <a class="resume-download" href="etc/resume.pdf" download>Download Resume</a>
+                            <a class="resume-open" href="etc/resume.pdf" target="_blank" rel="noopener">Open in New Tab</a>
                         </div>
                     </div>
                 </div>
-            </aside>
+            </section>
 
-            <!-- Right Column - Tab panels -->
-            <main class="content-column" id="content-column">
-                <!-- About Me -->
-                <section class="tab-panel" id="tab-about" data-tab-panel="about">
-                    <h3>About Me</h3>
-                    <p class="tab-eyebrow">B.S. Math-CS + B.S. CogSci (ML/NC) · UCSD</p>
-                    <p class="overview-text", style="margin-bottom: 30px;">I'm a Math and Cognitive Science double
-                        major at UC San Diego, building full-stack tools, ML pipelines, and multi-agent systems. Outside of
-                        class and code, I play racket sports, perform with LionDanceMe, do a little paddling on the side, and shoot photo/video for
-                        community events.</p>
+            <!-- Contact -->
+            <section class="panel" id="panel-contact" data-panel="contact" hidden>
+                <h2>Contact</h2>
+                <p class="panel-overview">Feel free to reach out below.</p>
 
+                <h3 class="panel-subhead">Channels</h3>
 
-
-                    <h4 class="subsection-title">Education</h4>
-                    <div class="education-item">
-                        <div class="education-header">
-                            <div class="education-main">
-                                <h5>University of California - San Diego</h5>
-                                <p class="degree">B.S. Mathematics-Computer Science </p>
-                                <p class="degree">B.S. Cognitive Science Spec. Machine Learning and Neural Computation
-                                </p>
-                            </div>
-                            <div class="education-meta">
-                                <span class="location">La Jolla, CA</span>
-                                <span class="date">Sep. 2025 - Jun. 2028</span>
-                            </div>
-                        </div>
-                        <div class="education-activities">
-                            <p class="activities-label">Activities:</p>
-                            <p class="activities-list">Association of Computing Machinery, Society of Undergraduate
-                                Mathematics Students, Data Science Society, Triton Engineering Student Society, Badminton Club</p>
-                        </div>
-                    </div>
-
-                    <div class="education-item">
-                        <div class="education-header">
-                            <div class="education-main">
-                                <h5>City College of San Francisco</h5>
-                                <p class="degree">A.S. Mathematics, Highest Honors</p>
-                            </div>
-                            <div class="education-meta">
-                                <span class="location">San Francisco, CA</span>
-                                <span class="date">Aug. 2024 - May. 2025</span>
-                            </div>
-                        </div>
-                        <div class="education-activities">
-                            <p class="activities-label">Activities:</p>
-                            <p class="activities-list">Student Tutor, Growth Sector Summer Bridge</p>
-                        </div>
-                    </div>
-
-                    <h4 class="subsection-title">Technical Skills</h4>
-                    <div class="skill-category">
-                        <div class="skill-category-header">
-                            <svg class="skill-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path d="M16 18L22 12L16 6M8 6L2 12L8 18" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round" />
+                <div class="contact-list">
+                    <div class="contact-row">
+                        <a class="contact-link" href="https://linkedin.com/in/alexanderzchin" target="_blank"
+                            rel="noopener">
+                            <span class="contact-badge">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <path
+                                        d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+                                    <rect x="2" y="9" width="4" height="12" />
+                                    <circle cx="4" cy="4" r="2" />
+                                </svg>
+                            </span>
+                            <span class="contact-info">
+                                <span class="contact-label">LinkedIn</span>
+                                <span class="contact-handle">alexanderzchin</span>
+                            </span>
+                        </a>
+                        <button type="button" class="contact-copy" data-copy="alexanderzchin"
+                            aria-label="Copy LinkedIn handle">
+                            <svg class="contact-copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="9" y="9" width="13" height="13" rx="2" />
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                             </svg>
-                            <h5>Programming Languages</h5>
-                        </div>
-                        <div class="skill-tags">
-                            <span class="skill-tag">Python </span>
-                            <span class="skill-tag">Java</span>
-                            <span class="skill-tag">SQL</span>
-                            <span class="skill-tag">Git</span>
-                            <span class="skill-tag">HTML</span>
-                            <span class="skill-tag">CSS</span>
-                            <span class="skill-tag">JavaScript</span>
-                            <span class="skill-tag">TypeScript</span>
-                            <span class="skill-tag">Go</span>
-                        </div>
-                    </div>
-
-                    <div class="skill-category">
-                        <div class="skill-category-header">
-                            <svg class="skill-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path
-                                    d="M4 7C4 6.46957 4.21071 5.96086 4.58579 5.58579C4.96086 5.21071 5.46957 5 6 5H18C18.5304 5 19.0391 5.21071 19.4142 5.58579C19.7893 5.96086 20 6.46957 20 7V17C20 17.5304 19.7893 18.0391 19.4142 18.4142C19.0391 18.7893 18.5304 19 18 19H6C5.46957 19 4.96086 18.7893 4.58579 18.4142C4.21071 18.0391 4 17.5304 4 17V7Z"
-                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" />
-                                <path d="M4 7L12 13L20 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" />
+                            <svg class="contact-copy-check" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 6L9 17l-5-5" />
                             </svg>
-                            <h5>Libraries/Frameworks</h5>
-                        </div>
-                        <div class="skill-tags">
-                            <span class="skill-tag">NumPy </span>
-                            <span class="skill-tag">Pandas</span>
-                            <span class="skill-tag">PyTorch</span>
-                            <span class="skill-tag">Matplotlib</span>
-                            <span class="skill-tag">React</span>
-                            <span class="skill-tag">Scikit-learn</span>
-                            <span class="skill-tag">FastAPI</span>
-                            <span class="skill-tag">Node.js</span>
-                            <span class="skill-tag">REST APIs</span>
-                            <span class="skill-tag">AWS</span>
-                            <span class="skill-tag">Supabase</span>
-                        </div>
+                        </button>
                     </div>
 
-                    <div class="skill-category">
-                        <div class="skill-category-header">
-                            <svg class="skill-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path
-                                    d="M12 6.25278V19.2528M12 6.25278C10.8321 5.47686 9.24649 5 7.5 5C5.75351 5 4.16789 5.47686 3 6.25278V19.2528C4.16789 18.4769 5.75351 18 7.5 18C9.24649 18 10.8321 18.4769 12 19.2528M12 6.25278C13.1679 5.47686 14.7535 5 16.5 5C18.2465 5 19.8321 5.47686 21 6.25278V19.2528C19.8321 18.4769 18.2465 18 16.5 18C14.7535 18 13.1679 18.4769 12 19.2528"
-                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" />
+                    <div class="contact-row">
+                        <a class="contact-link" href="mailto:azchin@ucsd.edu">
+                            <span class="contact-badge">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <path
+                                        d="M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4Z"
+                                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" />
+                                    <path d="M22 6L12 13L2 6" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                            </span>
+                            <span class="contact-info">
+                                <span class="contact-label">Email</span>
+                                <span class="contact-handle">azchin@ucsd.edu</span>
+                            </span>
+                        </a>
+                        <button type="button" class="contact-copy" data-copy="azchin@ucsd.edu"
+                            aria-label="Copy email address">
+                            <svg class="contact-copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="9" y="9" width="13" height="13" rx="2" />
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                             </svg>
-                            <h5>Coursework</h5>
-                        </div>
-                        <div class="skill-tags">
-                            <span class="skill-tag">Data Structures &amp; Algorithms</span>
-                            <span class="skill-tag">Systems Programming</span>
-                            <span class="skill-tag">Discrete Math</span>
-                            <span class="skill-tag">Machine Learning</span>
-                            <span class="skill-tag">Convex Optimization </span>
-                            <span class="skill-tag">Linear Programming</span>
-                            <span class="skill-tag">Probability &amp; Statistics</span>
-                            <span class="skill-tag">Stochastic Processes</span>
-                            <span class="skill-tag">Graph Theory</span>
-                            <span class="skill-tag">Object Oriented Programming</span>
-                        </div>
+                            <svg class="contact-copy-check" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 6L9 17l-5-5" />
+                            </svg>
+                        </button>
                     </div>
 
-                    <h4 class="subsection-title">Outside of Code</h4>
-                    <div class="hobby-tags">
-                        <span class="hobby-tag">Badminton</span>
-                        <span class="hobby-tag">Video Games</span>
-                        <span class="hobby-tag">Lion Dance</span>
-                        <span class="hobby-tag">Basketball</span>
-                        <span class="hobby-tag">Photography &amp; Video</span>
+                    <div class="contact-row">
+                        <a class="contact-link" href="https://github.com/alchin2" target="_blank" rel="noopener">
+                            <span class="contact-badge">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <path
+                                        d="M12 2C6.477 2 2 6.477 2 12C2 16.418 4.865 20.166 8.839 21.49C9.339 21.582 9.52 21.272 9.52 21.006C9.52 20.766 9.511 20.149 9.506 19.324C6.726 19.928 6.14 17.984 6.14 17.984C5.686 16.832 5.031 16.525 5.031 16.525C4.125 15.906 5.101 15.918 5.101 15.918C6.104 15.989 6.632 16.949 6.632 16.949C7.523 18.474 8.968 18.033 9.544 17.778C9.635 17.126 9.897 16.685 10.187 16.435C7.967 16.182 5.636 15.324 5.636 11.474C5.636 10.375 6.028 9.476 6.666 8.761C6.562 8.508 6.216 7.485 6.764 6.095C6.764 6.095 7.604 5.826 9.492 7.106C10.29 6.884 11.144 6.773 11.992 6.769C12.839 6.773 13.692 6.884 14.492 7.106C16.378 5.826 17.216 6.095 17.216 6.095C17.766 7.485 17.42 8.508 17.318 8.761C17.957 9.476 18.347 10.375 18.347 11.474C18.347 15.337 16.012 16.178 13.784 16.425C14.148 16.738 14.475 17.357 14.475 18.298C14.475 19.648 14.463 20.732 14.463 21.006C14.463 21.276 14.641 21.59 15.15 21.488C19.122 20.162 22 16.416 22 12C22 6.477 17.523 2 12 2Z" />
+                                </svg>
+                            </span>
+                            <span class="contact-info">
+                                <span class="contact-label">GitHub</span>
+                                <span class="contact-handle">alchin2</span>
+                            </span>
+                        </a>
+                        <button type="button" class="contact-copy" data-copy="alchin2"
+                            aria-label="Copy GitHub username">
+                            <svg class="contact-copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="9" y="9" width="13" height="13" rx="2" />
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                            </svg>
+                            <svg class="contact-copy-check" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 6L9 17l-5-5" />
+                            </svg>
+                        </button>
                     </div>
-                </section>
+                </div>
+            </section>
 
-                <!-- Experience -->
-                <section class="tab-panel" id="tab-experience" data-tab-panel="experience" hidden>
-                    <h3>Experience</h3>
-
-                    <h4 class="subsection-title">Experience</h4>
-                    <div class="timeline">
-                        <div class="timeline-line"></div>
-
-
-                         <div class="experience-item">
-                            <div class="timeline-dot"></div>
-                            <div class="experience-content">
-                                <div class="experience-header">
-                                    <h4>Software Developer (Contract)</h4>
-                                    <span class="experience-date">Jun. 2026 - Current</span>
-                                </div>
-                                <p class="company-name">Essenergy Inc</p>
-                                <ul class="experience-bullets">
-                                    <li>Developing backend automation services </li>
-                                </ul>
-                            </div>
-                        </div>
-
-
-                        <div class="experience-item">
-                            <div class="timeline-dot"></div>
-                            <div class="experience-content">
-                                <div class="experience-header">
-                                    <h4>Data Analyst Intern</h4>
-                                    <span class="experience-date">Jun. 2026 - Current</span>
-                                </div>
-                                <p class="company-name">IDX Exchange</p>
-                                <ul class="experience-bullets">
-                                    <li>Develop Python ETL pipelines to ingest, clean, and transform over 60K property listings monthly, 
-                                        deployed interactive Tableau dashboards that visualize KPIs and regional housing trends
-                                        </li>
-                                    <li>Engineer feature extraction and outlier detection pipelines to identify anomalous listings and generate actionable market 
-                                        intelligence reports.
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <div class="experience-item">
-                            <div class="timeline-dot"></div>
-                            <div class="experience-content">
-                                <div class="experience-header">
-                                    <h4>Undergraduate Research Assistant</h4>
-                                    <span class="experience-date">Mar. 2026 - Current</span>
-                                </div>
-                                <p class="company-name">Visual Learning Lab @ UCSD</p>
-                                <ul class="experience-bullets">
-                                    <li>Working with embedding models to predict developmental visual learning
-                                        trajectories using BabyView and experimental datasets</li>
-                                    <li>Built and Maintained reproducible data pipelines for behavioral experiment
-                                        data; documented workflows and versioned code to support collaboration..
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <div class="experience-item">
-                            <div class="timeline-dot"></div>
-                            <div class="experience-content">
-                                <div class="experience-header">
-                                    <h4>Software Developer</h4>
-                                    <span class="experience-date">Jan. 2026 - Apr. 2026</span>
-                                </div>
-                                <p class="company-name">Data Science Society (DS3) @ UCSD, La Jolla, CA</p>
-                                <ul class="experience-bullets">
-                                    <li>Built a full-stack course planning and visualization web app used by UCSD
-                                        students; placed 1st out of 12 teams in a quarterly competition judged by
-                                        HDSI faculty and industry engineers.</li>
-                                    <li>Engineered Python and Go data pipelines to process 2,500+ course records and
-                                        recursively parse prerequisite graphs into AST-based tree structures.</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <div class="experience-item">
-                            <div class="timeline-dot"></div>
-                            <div class="experience-content">
-                                <div class="experience-header">
-                                    <h4>Undergraduate Research Assistant</h4>
-                                    <span class="experience-date">Jan. 2026 - Apr. 2026</span>
-                                </div>
-                                <p class="company-name">The Econ Lab @ UCSD</p>
-                                <ul class="experience-bullets">
-                                    <li>Conducted econometric regression analysis in STATA to evaluate regional
-                                        economic impacts of educational policy spillovers using IPUMS and World Bank
-                                        data</li>
-                                    <li>Standardized 10,000+ points census records across datasets for analysis in
-                                        STATA, presented findings to research team.
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <div class="experience-item">
-                            <div class="timeline-dot"></div>
-                            <div class="experience-content">
-                                <div class="experience-header">
-                                    <h4>Research Intern </h4>
-                                    <span class="experience-date">Aug. 2025 - Sep. 2025</span>
-                                </div>
-                                <p class="company-name">UC San Diego Department of Mathematics</p>
-                                <ul class="experience-bullets">
-                                    <li>Participated in the Transfer Research Experience Program in the Mathematics
-                                        Department, implementing and training CNNs and image classification and
-                                        clustering models</li>
-                                    <li>Developed and optimized classification and clustering workflows using NumPy,
-                                        Pandas, and PyTorch, reducing model errors by 40% through rapid iteration and
-                                        parameter tuning</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <div class="experience-item">
-                            <div class="timeline-dot"></div>
-                            <div class="experience-content">
-                                <div class="experience-header">
-                                    <h4>Engineering Pre-Apprenticeship</h4>
-                                    <span class="experience-date">Jun. 2025 - Aug. 2025</span>
-                                </div>
-                                <p class="company-name">Growth Sector, San Francisco, CA</p>
-                                <ul class="experience-bullets">
-                                    <li>Applied foundational civil engineering concepts by modeling infrastructure
-                                        systems in Revit 2016, Bridge Designer Software and CAD</li>
-                                    <li>Programmed an Arduino microcontroller to wirelessly control a vehicle across a
-                                        student-built bridge, integrating coding, electronics, and mechanical design
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <div class="experience-item">
-                            <div class="timeline-dot"></div>
-                            <div class="experience-content">
-                                <div class="experience-header">
-                                    <h4>Academic Tutor</h4>
-                                    <span class="experience-date">Jan. 2025 - Jun. 2025</span>
-                                </div>
-                                <p class="company-name">City College of San Francisco, San Francisco, CA</p>
-                                <ul class="experience-bullets">
-                                    <li>Tutored 20+ students weekly in calculus and physics, improving average
-                                        student grades by one letter grade through targeted problem-solving support
-                                    </li>
-                                    <li>Provided 10+ hours of weekly office hours in collaboration with faculty,
-                                        improving student pass rates in calculus and physics</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <div class="experience-item">
-                            <div class="timeline-dot"></div>
-                            <div class="experience-content">
-                                <div class="experience-header">
-                                    <h4>NASA Community College Aerospace Scholar</h4>
-                                    <span class="experience-date">Jan. 2025 - Apr. 2025</span>
-                                </div>
-                                <p class="company-name">NASA Goddard Space Flight Center (Remote)</p>
-                                <ul class="experience-bullets">
-                                    <li>Engineered a simulated Mars rover mission plan, balancing latency, power
-                                        limits, data transmission, and reliability for success</li>
-                                    <li>Analyzed telemetry and communication strategies for remote robotic systems to
-                                        optimize mission efficiency</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <h4 class="subsection-title">Volunteering &amp; Leadership</h4>
-                    <div class="timeline">
-                        <div class="timeline-line"></div>
-
-
-                        <div class="experience-item">
-                            <div class="timeline-dot"></div>
-                            <div class="experience-content">
-                                <div class="experience-header">
-                                    <h4>Project Events Director</h4>
-                                    <span class="experience-date">May. 2026 - Present</span>
-                                </div>
-                                <p class="company-name">ACM @ UCSD</p>
-                                <ul class="experience-bullets">
-                                    <li>Hosting Events and Workshops for the projects community.</li>
-
-                                </ul>
-                            </div>
-                        </div>
-
-
-                        <div class="experience-item">
-                            <div class="timeline-dot"></div>
-                            <div class="experience-content">
-                                <div class="experience-header">
-                                    <h4>AI Projects Mentor</h4>
-                                    <span class="experience-date">Mar. 2026 - Present</span>
-                                </div>
-                                <p class="company-name">ACM @ UCSD </p>
-                                <ul class="experience-bullets">
-                                    <li>Mentored and directed teams through the end-to-end ML lifecycle, provided
-                                        technical guidance on model architecture selection, loss function
-                                        optimization, and deployment.</li>
-                                    <li>Lead weekly standups to unblock project progress and coordinate pacing,
-                                        collaboration, and quality across the team.</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <div class="experience-item">
-                            <div class="timeline-dot"></div>
-                            <div class="experience-content">
-                                <div class="experience-header">
-                                    <h4>Operations Manager</h4>
-                                    <span class="experience-date">Aug. 2023 - Jun. 2025</span>
-                                </div>
-                                <p class="company-name">LionDanceMe, San Francisco, CA</p>
-                                <ul class="experience-bullets">
-                                    <li>Collected, processed, and visualized availability data for 100+ student
-                                        members to coordinate practice scheduling</li>
-                                    <li>Built a digital attendance tracking system that logged 750+ events, replacing
-                                        manual record-keeping and reducing manual workload</li>
-                                    <li>Led teams on-site at performances, serving as primary contact with event
-                                        managers and clients; also performed as a dancer</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <div class="experience-item">
-                            <div class="timeline-dot"></div>
-                            <div class="experience-content">
-                                <div class="experience-header">
-                                    <h4>Volunteer Photographer/Videographer</h4>
-                                    <span class="experience-date">Aug. 2024 - Jun. 2025</span>
-                                </div>
-                                <p class="company-name">Bert Hsu Academy, San Francisco, CA</p>
-                                <ul class="experience-bullets">
-                                    <li>Scripted, recorded, and edited video content for social media channels, and
-                                        photographed students for annual yearbook production</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Projects -->
-                <section class="tab-panel" id="tab-projects" data-tab-panel="projects" hidden>
-                    <h3>Projects</h3>
-
-
-                    <div class="project-item">
-                        <div class="project-header">
-                            <h4>SafeStreets</h4>
-                            <div class="project-meta">
-                                <span class="project-meta-label award-badge">Best Use of Claude — CalHacks AI
-                                    2026</span>
-                                <a class="project-meta-label" href="https://github.com/kach0w/cal-hacks-ai"
-                                    target="_blank">GitHub ↗</a>
-                            </div>
-                        </div>
-                        <p class="project-context">Built at UC Berkeley AI Hackathon 3.0</p>
-                        <p class="project-tech">Claude Vision, Fetch.ai uAgents, Browserbase, Redis, Mapbox</p>
-                        <p class="project-description">Civic tech tool that uses Claude's vision capabilities to flag
-                            dangerous street intersections and auto-generate civic outreach pushing for fixes.</p>
-                    </div>
-
-                    <div class="project-item">
-                        <div class="project-header">
-                            <h4>ClassGraph</h4>
-                            <div class="project-meta">
-                                <a class="project-meta-label" href="https://github.com/nehalc200/classgraph"
-                                    target="_blank">GitHub ↗</a>
-                            </div>
-                        </div>
-                        <p class="project-context">1st Place — DS3 W26 Projects</p>
-                        <p class="project-tech">Python, Go, React, TypeScript, D3.js</p>
-                        <p class="project-description">Engineered scraping pipelines to collect and transform 2,500+
-                            courses into a structured SQL database with AST-backed representations. Designed a
-                            TypeScript AST-based prerequisite resolver parsing nested AND/OR logic and rendering
-                            dependency DAGs in D3.js. A CI/CD pipeline auto-scrapes and republishes new courses each
-                            quarter.</p>
-                    </div>
-
-                    <div class="project-item">
-                        <div class="project-header">
-                            <h4>SwapU — Autonomous Item-to-Item Marketplace</h4>
-                            <div class="project-meta">
-                                <a class="project-meta-label" href="https://github.com/alchin2/swapu"
-                                    target="_blank">GitHub ↗</a>
-                            </div>
-                        </div>
-                        <p class="project-context">Built at DiamondHacks 2026</p>
-                        <p class="project-tech">Fetch.ai, BrowserUse, FastAPI, React, Supabase, AWS</p>
-                        <p class="project-description">Multi-agent student trading platform where autonomous Fetch.ai
-                            agents greedily negotiate multi-item trades on behalf of students; integrated BrowserUse
-                            for real-time market pricing and confidence scoring. Personally built the FastAPI backend
-                            framework (REST + WebSocket controllers, Supabase PostgreSQL, AWS S3), the BrowserUse
-                            pricing features, and authentication.</p>
-                    </div>
-
-                    <div class="project-item">
-                        <div class="project-header">
-                            <h4>WebReg to ICS</h4>
-                            <div class="project-meta">
-                                <a class="project-meta-label" href="https://github.com/alchin2/webreg-to-ics"
-                                    target="_blank">GitHub ↗</a>
-                            </div>
-                        </div>
-                        <p class="project-tech">Python, FastAPI, PyMuPDF, JavaScript, iCalendar</p>
-                        <p class="project-description">
-                            Converts UCSD WebReg schedule PDFs into clean, importable <code>.ics</code> calendar
-                            files, with a browser-based weekly schedule preview before download. The FastAPI +
-                            PyMuPDF backend parses course data directly from the PDF, generates recurring weekly
-                            lectures, skips UCSD holidays automatically, and adds midterms and finals as one-off
-                            events. Vercel deploy still in progress.
-                        </p>
-                    </div>
-
-                    <div class="project-item">
-                        <div class="project-header">
-                            <h4>Spotify Recommender System</h4>
-                            <div class="project-meta">
-                                <a class="project-meta-label" href="https://github.com/alchin2/acm-recommender-system"
-                                    target="_blank">GitHub ↗</a>
-                            </div>
-                        </div>
-                        <p class="project-tech">Python, PyTorch, Pandas, NumPy</p>
-                        <p class="project-description">Two-tower neural collaborative filtering model to predict
-                            songs through collaborative and content-based filtering, mapping user preferences and
-                            900,000+ tracks into a shared latent space. Fine-tuned embedding and epoch size, achieving
-                            5.2 precision@10, 0.84 ROC–AUC, and reduced validation loss by 30%.</p>
-                    </div>
-
-                    <div class="project-item">
-                        <div class="project-header">
-                            <h4>Quorum</h4>
-                            <div class="project-meta">
-                                <a class="project-meta-label" href="https://github.com/samsonchang2028/JacHacks2026"
-                                    target="_blank">Github ↗</a>
-                            </div>
-                        </div>
-                        <p class="project-context">Built at JacHacks SF 2026</p>
-                        <p class="project-tech">Jac/jaclang, Python, LLM integration, Firecrawl, Apify</p>
-                        <p class="project-description">Civic advocacy generator that turns a community's position on
-                            a local issue into a tactical organizing kit: plain-language issue briefs,
-                            procedural playbooks with source-backed facts, three recourse paths, targeting advice
-                            that flags mismatches between impacted and decision-making zones, precedent-based
-                            strategy, bilingual outreach packet.</p>
-                    </div>
-
-                    <div class="project-item">
-                        <div class="project-header">
-                            <h4>Discord Scheduling Bot</h4>
-                            <div class="project-meta">
-                                <span class="project-meta-label status-badge">Deployed</span>
-                            </div>
-                        </div>
-                        <p class="project-tech">Discord Bot, Google Calendar API, Railway</p>
-                        <p class="project-description">A Discord bot with Google Calendar integration for scheduling,
-                            deployed on Railway.</p>
-                    </div>
-
-                    <div class="project-item">
-                        <div class="project-header">
-                            <h4>Minecraft Texture Generation</h4>
-                            <div class="project-meta">
-                                <span class="project-meta-label status-badge">Research</span>
-                            </div>
-                        </div>
-                        <p class="project-tech">Diffusion Models, VQGAN, VQVAE</p>
-                        <p class="project-description">Exploratory generative modeling project synthesizing
-                            Minecraft-style textures with diffusion models; currently investigating VQGAN/VQVAE
-                            approaches as a next step.</p>
-                    </div>
-
-                    <h4 class="subsection-title">Active / Ongoing</h4>
-
-                    <div class="project-item">
-                        <div class="project-header">
-                            <h4>TSS++</h4>
-                            <div class="project-meta">
-                                <span class="project-meta-label status-badge">In Progress</span>
-                            </div>
-                        </div>
-                        <p class="project-description">UCSD course browser combining WebReg++-style scheduling with
-                            ClassGraph's prerequisite visualization, backed by a custom scraper against UCSD's TSS
-                            OData API.</p>
-                    </div>
-
-                    <div class="project-item">
-                        <div class="project-header">
-                            <h4>TroupeRoute</h4>
-                            <div class="project-meta">
-                                <span class="project-meta-label status-badge">In Progress</span>
-                            </div>
-                        </div>
-                        <p class="project-tech">Google Maps API, Python, H3, Pandas, React</p>
-                        <p class="project-description">Vehicle routing optimizer for LionDanceMe operations, modeling
-                            multi-stop routing as a constrained Traveling Salesman Problem using road networks and
-                            travel-time matrices from OpenStreetMap data. Integrated OR-Tools to enforce time-window
-                            and overlap constraints across 40+ daily events, improving schedule feasibility and
-                            reducing total travel time.</p>
-                    </div>
-
-                    <div class="project-item">
-                        <div class="project-header">
-                            <h4>CommerceHub Dropship Automation</h4>
-                            <div class="project-meta">
-                                <span class="project-meta-label status-badge">In Progress</span>
-                            </div>
-                        </div>
-                        <p class="project-description">Multi-agent automation system for a Macy's / Home Depot
-                            dropship pipeline on CommerceHub.</p>
-                    </div>
-
- 
-                </section>
-
-                <!-- Resume / CV -->
-                <section class="tab-panel" id="tab-resume" data-tab-panel="resume" hidden>
-                    <h3>Resume / CV</h3>
-                    <div class="resume-card">
-                        <div class="resume-preview">
-                            <iframe src="etc/resume.pdf" title="Alexander Chin's resume preview" loading="lazy">
-                                <p>Your browser can't preview PDFs inline.
-                                    <a href="etc/resume.pdf">Open the resume directly</a> instead.
-                                </p>
-                            </iframe>
-                        </div>
-                        <a class="resume-download" href="etc/resume.pdf" download>Download Resume</a>
-                    </div>
-                </section>
-            </main>
+            <!-- Blog -->
+            <section class="panel" id="panel-blog" data-panel="blog" hidden>
+                <h2>Blog</h2>
+                <div class="empty-state">
+                    <span class="empty-ring" aria-hidden="true"></span>
+                    <p class="empty-title">Coming Soon!</p>
+                </div>
+            </section>
         </div>
-    </div>
+    </main>
 
     <script src="script.js" defer></script>
 </body>

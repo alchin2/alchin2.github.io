@@ -1,0 +1,11 @@
+# OS
+.DS_Store
+
+# AI coding tool configs/caches — not part of the site
+.agents/
+.codex/
+.cursor/
+.impeccable/
+skills-lock.json
+DESIGN.md
+PRODUCT.md

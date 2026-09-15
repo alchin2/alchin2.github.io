@@ -1,28 +1,66 @@
 /* ==========================================================================
    Design tokens
-   A precision-timing motif (rings, bezels, timecodes) drawn from rhythm-game
-   geometry, executed with restraint: one signature (the avatar bezel), two
-   accents each with a single job, everything else quiet.
+   osu!'s song/mode-select screen, rebuilt as the site's own grammar: a
+   spinning hit-circle you click open, a radial mode fan, rank-letter chips
+   and difficulty-style rows standing in for cards.
    ========================================================================== */
 
 :root {
-    --ink: #240046;
-    --ink-raised: #2d0058;
-    --paper: #f4effb;
-    --rose: #9d4edd;
-    --rose-dim: rgba(157, 78, 221, 0.18);
-    --brass: #e0aaff;
-    --brass-dim: rgba(224, 170, 255, 0.16);
-    --ash: #ab98cf;
-    --line: rgba(224, 170, 255, 0.16);
-    --line-soft: rgba(224, 170, 255, 0.09);
+    /* Recolored from a supplied Figma palette (a 4-family violet/indigo
+       ramp — primary/secondary/tertiary/quaternary, 100-700 — plus a
+       neutral grey ramp). Ground and the primary/secondary accent pair
+       are drawn straight from that palette; --pink/--blue keep their
+       token names for minimal churn even though neither is literally
+       pink or cyan anymore — see DESIGN.md. */
+    --void: #0e0e27;
+    /* primary/700 */
+    --void-raised: #272757;
+    /* primary/600 */
+    --void-line: rgba(224, 224, 239, 0.14);
+    /* primary/100, tinted */
+    --void-line-soft: rgba(224, 224, 239, 0.07);
 
-    --font-display: 'Space Grotesk', 'Inter', sans-serif;
-    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+    --paper: #e0e0ef;
+    /* primary/100 */
+    --ash: #8686ac;
+    /* secondary/300 */
+    --ash-dim: #7474a0;
+    /* tertiary/400 — currently unused; kept close to AA for whenever it is */
+
+    /* Rank ladder: S/A/B/C get their own hues, drawn from rhythm-game
+       rank-letter convention rather than invented as decoration. Gold/
+       green/rust are kept as-is (outside the supplied palette) so the
+       four rank tiers stay visually distinct — collapsing them into the
+       same violet family would erase the one thing the ladder needs to
+       do at a glance. */
+    --pink: #9796e6;
+    /* quaternary/300 — primary interactive accent. quaternary/400 (#6d6cda)
+       was the first pick but only cleared 4.3:1 on void — this is the
+       nearest palette step that clears WCAG AA (7.04:1). */
+    --pink-dim: rgba(151, 150, 230, 0.18);
+    --pink-soft: rgba(151, 150, 230, 0.09);
+    --blue: #9a9abb;
+    /* tertiary/300 — secondary/informational accent + rank B (6.94:1) */
+    --blue-dim: rgba(154, 154, 187, 0.18);
+    --gold: #ffcf4d;
+    --gold-dim: rgba(255, 207, 77, 0.14);
+    --green: #6fe3a6;
+    --green-dim: rgba(111, 227, 166, 0.14);
+    --rust: #e08a5c;
+    --rust-dim: rgba(224, 138, 92, 0.16);
+
+    --font-display: 'Exo 2', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-body: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
+
+    --beat: 640ms;
+    /* shared timing grid every authored motion locks to */
 }
 
-/* Reset and Base Styles */
+/* ==========================================================================
+   Reset and base
+   ========================================================================== */
+
 * {
     margin: 0;
     padding: 0;
@@ -37,16 +75,17 @@ body {
     font-family: var(--font-body);
     line-height: 1.6;
     color: var(--paper);
-    background-color: var(--ink);
+    background-color: var(--void);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     position: relative;
     overflow-x: hidden;
+    min-height: 100vh;
 }
 
 ::selection {
-    background-color: var(--rose);
-    color: var(--ink);
+    background-color: var(--pink);
+    color: var(--void);
 }
 
 button {
@@ -54,285 +93,378 @@ button {
     color: inherit;
     background: none;
     border: none;
+    cursor: pointer;
+}
+
+a {
+    color: inherit;
+}
+
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--void);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--void-line);
+    border-radius: 6px;
+    border: 3px solid var(--void);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--pink-dim);
+}
+
+a:focus-visible,
+button:focus-visible {
+    outline: 2px solid var(--pink);
+    outline-offset: 3px;
+    border-radius: 2px;
 }
 
 /* ==========================================================================
-   Background decor — faint concentric rings radiating from the avatar,
-   standing in for the "needle drop" the page opens on
+   Backdrop — the playfield both gate and stage sit on
    ========================================================================== */
 
-.bg-decor {
+.backdrop {
     position: fixed;
     inset: 0;
-    z-index: -1;
+    z-index: 0;
     overflow: hidden;
     pointer-events: none;
 }
 
-.bg-rings {
+.backdrop-glow {
     position: absolute;
     inset: 0;
-    background: repeating-radial-gradient(circle at 15% 20%,
-            rgba(224, 170, 255, 0.06) 0px,
-            rgba(224, 170, 255, 0.06) 1.4px,
-            transparent 1.4px,
-            transparent 74px);
+    background:
+        radial-gradient(ellipse 46% 40% at 50% 42%, rgba(255, 79, 163, 0.10), transparent 68%),
+        radial-gradient(ellipse 38% 32% at 50% 42%, rgba(73, 211, 255, 0.06), transparent 70%);
+    transition: opacity 0.6s ease;
+}
+
+body.is-entered .backdrop-glow {
+    opacity: 0.55;
 }
 
 /* ==========================================================================
-   Layout
+   Gate — the start screen
    ========================================================================== */
 
-.main-container {
-    max-width: 1180px;
-    margin: 0 auto;
-    padding: 72px 24px 96px;
-}
-
-.content-wrapper {
-    display: grid;
-    grid-template-columns: 300px 1fr;
-    gap: 88px;
-    align-items: start;
-}
-
-.profile-column {
-    position: sticky;
-    top: 56px;
-}
-
-.profile-card {
+.gate {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
+    justify-content: flex-end;
+    padding-bottom: 9vh;
+    text-align: center;
+    pointer-events: none;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+body.is-entered .gate {
+    opacity: 0;
+    transform: translateY(-18px);
+}
+
+.gate-name {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(30px, 5.4vw, 52px);
+    letter-spacing: -0.02em;
+    color: var(--paper);
+    margin-top: clamp(150px, 24vw, 250px);
+}
+
+.gate-tagline {
+    margin-top: 10px;
+    font-size: clamp(13px, 1.6vw, 16px);
+    color: var(--ash);
+}
+
+.gate-hint {
+    margin-top: 22px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--pink);
+    opacity: 0.85;
 }
 
 /* ==========================================================================
-   Signature: the bezel avatar
+   Signature: the hit-circle
    ========================================================================== */
 
-.profile-image.hit-circle {
-    position: relative;
-    width: 116px;
-    height: 116px;
+.hit-circle {
+    position: fixed;
+    z-index: 3;
     border-radius: 50%;
-    overflow: visible;
-    margin-bottom: 26px;
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+
+    top: 42%;
+    left: 50%;
+    width: clamp(130px, 20vw, 200px);
+    height: clamp(130px, 20vw, 200px);
+    transform: translate(-50%, -50%);
+    transition: top var(--beat) cubic-bezier(0.22, 1, 0.36, 1),
+        left var(--beat) cubic-bezier(0.22, 1, 0.36, 1),
+        width var(--beat) cubic-bezier(0.22, 1, 0.36, 1),
+        height var(--beat) cubic-bezier(0.22, 1, 0.36, 1),
+        transform var(--beat) cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.profile-image.hit-circle img {
+body.is-entered .hit-circle {
+    top: 32px;
+    left: 32px;
+    width: 46px;
+    height: 46px;
+    transform: translate(0, 0);
+}
+
+.hit-photo {
+    position: relative;
+    display: block;
     width: 100%;
     height: 100%;
     border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid var(--pink);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 0 6px var(--void) inset;
+}
+
+.hit-photo img {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
     display: block;
-    border: 2px solid var(--rose);
-    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
 }
 
-/* Watch-bezel tick ring */
-.bezel-ring {
+/* Idle tick ring — mirrors a beatmap's spinner ticks */
+.hit-ring {
     position: absolute;
-    inset: -17px;
+    inset: -14%;
     border-radius: 50%;
     background: repeating-conic-gradient(from 0deg,
-            var(--ash) 0deg 1.3deg,
-            transparent 1.3deg 30deg);
+            var(--ash) 0deg 1.2deg,
+            transparent 1.2deg 30deg);
     -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
     mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
-    opacity: 0.55;
+    opacity: 0.5;
     pointer-events: none;
+    animation: hit-ring-spin 16s linear infinite;
 }
 
-/* Slow-orbiting brass hand tracing the bezel edge */
-.bezel-hand {
-    position: absolute;
-    inset: -17px;
-    border-radius: 50%;
-    pointer-events: none;
-    animation: bezel-orbit 40s linear infinite;
-}
-
-.bezel-hand::after {
-    content: '';
-    position: absolute;
-    top: 1px;
-    left: 50%;
-    width: 2px;
-    height: 12px;
-    background: var(--brass);
-    border-radius: 2px;
-    transform: translateX(-50%);
-}
-
-@keyframes bezel-orbit {
+@keyframes hit-ring-spin {
     to {
         transform: rotate(360deg);
     }
 }
 
-.hit-circle-badge {
-    position: absolute;
-    bottom: -2px;
-    right: -2px;
-    min-width: 28px;
-    height: 22px;
-    padding: 0 6px;
-    border-radius: 11px;
-    background: var(--brass);
-    border: 2px solid var(--ink);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--font-mono);
-    font-weight: 600;
-    font-size: 11px;
-    letter-spacing: 0.02em;
-    color: var(--ink);
+body.is-entered .hit-ring {
+    inset: -6%;
+    animation-duration: 30s;
 }
 
 /* ==========================================================================
-   Section menu
+   Radial mode-select menu
    ========================================================================== */
 
-.fan-menu {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 24px;
+.mode-fan {
+    position: fixed;
+    z-index: 2;
+    top: 42%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    pointer-events: none;
 }
 
-.fan-item {
+/* Docked state: the fan stays a circle, anchored just past the small
+   avatar. Rotation (wheel, drag, or keyboard focus) spins it like a jog
+   wheel — script.js swings items around this anchor and fades/hides
+   whichever fall outside the visible window, so three read at a time
+   and the rest are dialed in rather than laid out in a line. */
+body.is-entered .mode-fan {
+    top: 68px;
+    left: 68px;
+    cursor: grab;
+}
+
+body.is-entered.is-open .mode-fan {
+    pointer-events: auto;
+}
+
+body.is-entered.is-open .mode-fan:active {
+    cursor: grabbing;
+}
+
+.mode-item {
+    position: absolute;
+    top: 0;
+    left: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 6px;
-    padding: 4px 0;
-    cursor: pointer;
+    width: 84px;
+    margin-left: -42px;
+    margin-top: -42px;
+    opacity: 0;
+    transform: translate(0, 0) scale(0.4);
+    transition: transform 0.22s ease, opacity 0.18s ease;
+    transition-delay: 0s;
+    pointer-events: none;
 }
 
-.fan-icon {
+body.is-open .mode-item {
+    opacity: 1;
+    transform: translate(var(--tx, 0px), var(--ty, 0px)) scale(1);
+    pointer-events: auto;
+    transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 0.3s ease;
+    transition-delay: calc(var(--i) * 55ms);
+}
+
+.mode-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
-    background: var(--ink-raised);
-    border: 1.5px solid var(--line);
+    background: var(--void-raised);
+    border: 1.5px solid var(--void-line);
     color: var(--ash);
-    transition: border-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+    transition: border-color 0.18s ease, color 0.18s ease, background 0.18s ease, transform 0.18s ease;
 }
 
-.fan-item:hover .fan-icon {
-    border-color: var(--rose);
-    color: var(--rose);
-    transform: translateY(-2px);
+/* Rotation-driven positioning: script.js writes transform/opacity/
+   pointer-events inline per item every frame the dial turns, so this
+   rule only supplies sizing and the transition that smooths those
+   inline writes into motion. */
+body.is-entered .mode-item {
+    width: 58px;
+    margin-left: -29px;
+    margin-top: -29px;
+    transition: transform 0.18s ease, opacity 0.25s ease;
+    transition-delay: 0s;
 }
 
-.fan-item.is-active .fan-icon {
-    background: var(--rose-dim);
-    border-color: var(--rose);
-    color: var(--rose);
+body.is-entered .mode-icon {
+    width: 34px;
+    height: 34px;
 }
 
-.fan-label {
+.mode-item:hover .mode-icon,
+.mode-item:focus-visible .mode-icon {
+    border-color: var(--pink);
+    color: var(--pink);
+    background: var(--pink-soft);
+    transform: translateY(-3px);
+}
+
+.mode-item.is-active .mode-icon {
+    border-color: var(--pink);
+    color: var(--pink);
+    background: var(--pink-dim);
+}
+
+.mode-item.is-active .mode-label {
+    color: var(--paper);
+}
+
+.mode-label {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--ash);
 }
 
-.fan-item.is-active .fan-label {
+.mode-item:hover .mode-label,
+.mode-item:focus-visible .mode-label {
     color: var(--paper);
 }
 
 /* ==========================================================================
-   Identity block
+   Stage — entered state
    ========================================================================== */
 
-.identity-eyebrow {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--brass);
-    margin-bottom: 10px;
+.stage {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 108px 24px 96px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.4s ease 0.15s, transform 0.4s ease 0.15s, filter 0.25s ease;
 }
 
-.profile-card h1 {
-    font-family: var(--font-display);
-    font-size: 34px;
-    font-weight: 700;
-    margin-bottom: 6px;
-    color: var(--paper);
-    letter-spacing: -0.02em;
+body.is-entered .stage {
+    opacity: 1;
+    transform: translateY(0);
 }
 
-.osu-bang {
-    color: var(--rose);
+/* Reopening the fan over the stage pauses the content behind it, so
+   fanned labels never collide with panel text. */
+body.is-open.is-entered .stage {
+    filter: blur(3px);
+    opacity: 0.3;
+    pointer-events: none;
 }
 
-.rank-tagline {
-    font-size: 13px;
-    color: var(--ash);
-    margin-bottom: 28px;
-}
-
-.contact-info {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 24px;
-    width: 100%;
-    padding-top: 22px;
-    border-top: 1px solid var(--line-soft);
-}
-
-.contact-item {
+.stage-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 2;
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 14px;
+    justify-content: flex-end;
+    padding: 26px 24px 0 112px;
+    transition: filter 0.25s ease, opacity 0.25s ease;
+}
+
+body.is-open.is-entered .stage-bar {
+    filter: blur(3px);
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+.stage-exit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
     color: var(--ash);
+    border: 1.5px solid var(--void-line);
+    transition: color 0.18s ease, border-color 0.18s ease;
 }
 
-.contact-icon {
-    width: 17px;
-    height: 17px;
-    color: var(--rose);
-    flex-shrink: 0;
-}
-
-.contact-item a {
-    color: var(--ash);
-    text-decoration: none;
-    transition: color 0.2s ease;
-}
-
-.contact-item a:hover {
-    color: var(--paper);
+.stage-exit:hover {
+    color: var(--pink);
+    border-color: var(--pink);
 }
 
 /* ==========================================================================
-   Content column / tab panels
+   Panels
    ========================================================================== */
 
-.content-column {
-    max-width: 100%;
-    min-height: 320px;
-}
-
-.empty-state {
-    font-size: 15px;
-    color: var(--ash);
-    padding: 40px 0;
-}
-
-.tab-panel {
+.panel {
     animation: panel-fade-in 0.35s ease;
 }
 
@@ -348,60 +480,61 @@ button {
     }
 }
 
-.tab-panel>h3 {
+.panel h2 {
     font-family: var(--font-display);
-    font-size: 30px;
+    font-size: clamp(26px, 4vw, 34px);
     font-weight: 700;
     color: var(--paper);
     letter-spacing: -0.02em;
+    margin-bottom: 28px;
 }
 
-.tab-eyebrow {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--brass);
-    letter-spacing: 0.04em;
-    margin: 8px 0 32px;
-}
-
-.subsection-title {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--ash);
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    margin: 40px 0 4px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--line);
-}
-
-.tab-panel>.subsection-title:first-of-type {
-    margin-top: 0;
-}
-
-.overview-text {
+.panel-overview {
     font-size: 16px;
     color: var(--ash);
     line-height: 1.75;
-    max-width: 620px;
+    max-width: 640px;
+    margin-bottom: 8px;
+}
+
+/* Angled pennant tab — a direct structural quote of osu.ppy.sh's own
+   diagonal section-cut convention, reserved for section-level wayfinding
+   (subheads here, the current-section tab in the stage bar) rather than
+   applied to every row. */
+.panel-subhead {
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--paper);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    margin: 44px 0 20px;
+    padding: 8px 26px 8px 16px;
+    background: var(--void-raised);
+    border-left: 2px solid var(--pink);
+    clip-path: polygon(0 0, 100% 0, calc(100% - 16px) 100%, 0 100%);
+}
+
+.panel>.panel-subhead:first-of-type {
+    margin-top: 8px;
 }
 
 /* ==========================================================================
-   About — Education (tracklist rows, no card fill)
+   About — records (education) and chips (skills)
    ========================================================================== */
 
-.education-item {
+.record {
     padding: 22px 0;
-    border-top: 1px solid var(--line);
+    border-top: 1px solid var(--void-line);
 }
 
-.education-item:last-of-type {
+.record:last-of-type {
     padding-bottom: 0;
 }
 
-.education-header {
+.record-head {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
@@ -409,12 +542,12 @@ button {
     gap: 16px;
 }
 
-.education-main {
+.record-main {
     flex: 1;
     min-width: 200px;
 }
 
-.education-main h5 {
+.record-main h4 {
     font-family: var(--font-display);
     font-size: 18px;
     font-weight: 600;
@@ -422,14 +555,14 @@ button {
     margin-bottom: 4px;
 }
 
-.degree {
+.record-line {
     font-size: 14.5px;
     color: var(--ash);
     margin-bottom: 4px;
     line-height: 1.6;
 }
 
-.education-meta {
+.record-meta {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
@@ -437,113 +570,156 @@ button {
     text-align: right;
 }
 
-.location {
+.record-place {
     font-size: 12.5px;
     color: var(--ash);
 }
 
-.education-meta .date {
+.record-date {
     font-family: var(--font-mono);
     font-size: 12px;
-    color: var(--brass);
+    color: var(--blue);
 }
 
-.education-activities {
+.record-note {
     margin-top: 12px;
-}
-
-.activities-label {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--ash);
-    margin-bottom: 4px;
-    display: inline;
-}
-
-.activities-list {
     font-size: 13px;
     color: var(--ash);
     line-height: 1.6;
-    margin: 0;
-    display: inline;
-    opacity: 0.85;
+    opacity: 0.9;
 }
 
-/* ==========================================================================
-   About — Skills
-   ========================================================================== */
+.record-note strong {
+    color: var(--ash);
+    font-weight: 600;
+}
 
-.skill-category {
+.skill-group {
     margin-bottom: 24px;
 }
 
-.skill-category:last-of-type {
+.skill-group:last-of-type {
     margin-bottom: 0;
 }
 
-.skill-category-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 12px;
-}
-
-.skill-icon {
-    width: 18px;
-    height: 18px;
-    color: var(--brass);
-    flex-shrink: 0;
-}
-
-.skill-category h5 {
+.skill-group-title {
     font-family: var(--font-mono);
     font-size: 11px;
     font-weight: 600;
     color: var(--ash);
     text-transform: uppercase;
     letter-spacing: 0.1em;
+    margin-bottom: 12px;
 }
 
-.skill-tags {
+.chip-row {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin-left: 28px;
 }
 
-.skill-tag {
-    display: inline-block;
+.chip {
+    display: inline-flex;
+    align-items: center;
     padding: 5px 12px;
     background: transparent;
-    border: 1px solid var(--line);
+    border: 1px solid var(--void-line);
     border-radius: 4px;
     font-family: var(--font-mono);
     font-size: 12px;
+    font-weight: 500;
     color: var(--paper);
-    transition: border-color 0.2s ease, background 0.2s ease;
+    text-decoration: none;
+    transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
 }
 
-.skill-tag:hover {
-    border-color: var(--rose);
-    background: var(--rose-dim);
+.chip--accent {
+    border-color: rgba(255, 207, 77, 0.35);
+    color: var(--gold);
 }
 
-/* About — Hobbies */
-.hobby-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+.chip--gold {
+    border-color: var(--gold);
+    color: var(--gold);
+    cursor: default;
 }
 
-.hobby-tag {
-    display: inline-block;
-    padding: 5px 12px;
-    background: transparent;
-    border: 1px solid rgba(201, 162, 39, 0.4);
-    border-radius: 4px;
+.chip--green {
+    border-color: var(--green);
+    color: var(--green);
+    cursor: default;
+}
+
+.chip--blue {
+    border-color: var(--blue);
+    color: var(--blue);
+    cursor: default;
+}
+
+.chip--muted {
+    border-color: var(--rust);
+    color: var(--rust);
+    cursor: default;
+}
+
+.chip--link {
+    border-color: var(--pink);
+    color: var(--pink);
+}
+
+.chip--link:hover {
+    background: var(--pink);
+    color: var(--void);
+}
+
+/* Difficulty-star tag treatment, reused across skill and tech-stack chips */
+.chip--tag {
+    gap: 6px;
+}
+
+.chip--tag::before {
+    content: '\2605';
+    font-size: 8px;
+    color: var(--pink);
+    line-height: 1;
+}
+
+.chip--tech {
+    border-color: var(--blue);
+    color: var(--blue);
+}
+
+/* Rank-letter badge, reused inside award/status chips */
+.rank-dot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 2px;
+    margin-right: 7px;
+    border-radius: 50%;
     font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--brass);
+    font-weight: 700;
+    font-size: 11px;
+    line-height: 1;
+    color: var(--void);
+}
+
+.rank-dot[data-rank="S"] {
+    background: var(--gold);
+}
+
+.rank-dot[data-rank="A"] {
+    background: var(--green);
+}
+
+.rank-dot[data-rank="B"] {
+    background: var(--blue);
+}
+
+.rank-dot[data-rank="C"] {
+    background: var(--rust);
 }
 
 /* ==========================================================================
@@ -552,110 +728,33 @@ button {
 
 .timeline {
     position: relative;
-    margin-left: 28px;
+    margin-left: 26px;
+    padding-left: 20px;
+    border-left: 1px solid var(--void-line);
 }
 
-.timeline-line {
-    position: absolute;
-    left: -23px;
-    top: 6px;
-    bottom: 6px;
-    width: 1px;
-    background: var(--line);
-}
-
-.experience-item {
+.timeline-item {
     position: relative;
-    margin-bottom: 34px;
+    margin-bottom: 32px;
 }
 
-.experience-item:last-child {
+.timeline-item:last-child {
     margin-bottom: 0;
 }
 
-.timeline-dot {
+.timeline-item::before {
+    content: '';
     position: absolute;
-    left: -29px;
-    top: 4px;
-    width: 11px;
-    height: 11px;
+    left: -25px;
+    top: 5px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
-    background: var(--ink);
-    border: 2px solid var(--rose);
-    z-index: 1;
+    background: var(--void);
+    border: 2px solid var(--pink);
 }
 
-.experience-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 8px;
-    flex-wrap: wrap;
-    gap: 12px;
-}
-
-.experience-header h4 {
-    font-family: var(--font-display);
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--paper);
-}
-
-.experience-date {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--brass);
-}
-
-.company-name {
-    font-size: 14.5px;
-    color: var(--ash);
-    margin-bottom: 12px;
-}
-
-.experience-bullets {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.experience-bullets li {
-    font-size: 14.5px;
-    color: var(--ash);
-    line-height: 1.7;
-    margin-bottom: 8px;
-    padding-left: 16px;
-    position: relative;
-    opacity: 0.92;
-}
-
-.experience-bullets li::before {
-    content: '–';
-    position: absolute;
-    left: 0;
-    color: var(--rose);
-}
-
-.experience-bullets li:last-child {
-    margin-bottom: 0;
-}
-
-/* ==========================================================================
-   Projects — tracklist rows
-   ========================================================================== */
-
-.project-item {
-    position: relative;
-    padding: 22px 0;
-    border-top: 1px solid var(--line);
-    transition: background 0.2s ease;
-}
-
-.project-item:last-child {
-    padding-bottom: 0;
-}
-
-.project-header {
+.timeline-head {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
@@ -664,266 +763,491 @@ button {
     gap: 12px;
 }
 
-.project-header h4 {
+.timeline-head h4 {
     font-family: var(--font-display);
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 600;
     color: var(--paper);
 }
 
-.project-meta-label {
-    display: inline-block;
+.timeline-date {
     font-family: var(--font-mono);
-    font-size: 11px;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--rose);
-    text-decoration: none;
-    border: 1px solid var(--rose);
-    padding: 4px 10px;
-    border-radius: 4px;
-    transition: background 0.2s ease, color 0.2s ease;
+    font-size: 12px;
+    color: var(--blue);
     white-space: nowrap;
 }
 
-a.project-meta-label:hover {
-    background: var(--rose);
-    color: var(--ink);
-}
-
-.status-badge {
+.timeline-org {
+    font-size: 14.5px;
     color: var(--ash);
-    border-color: var(--line);
-    cursor: default;
+    margin-bottom: 10px;
 }
 
-.award-badge {
-    color: var(--brass);
-    border-color: var(--brass);
-    cursor: default;
+.timeline-bullets {
+    list-style: none;
 }
 
-.project-context {
+.timeline-bullets li {
+    font-size: 14.5px;
+    color: var(--ash);
+    line-height: 1.7;
+    margin-bottom: 8px;
+    padding-left: 16px;
+    position: relative;
+}
+
+.timeline-bullets li::before {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 9px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--pink);
+}
+
+.timeline-bullets li:last-child {
+    margin-bottom: 0;
+}
+
+/* ==========================================================================
+   Projects — tracklist rows
+   ========================================================================== */
+
+.entry {
+    padding: 22px 0;
+    border-top: 1px solid var(--void-line);
+}
+
+.entry:last-child {
+    padding-bottom: 0;
+}
+
+.entry-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.entry-head h4 {
+    font-family: var(--font-display);
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--paper);
+}
+
+.entry-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.entry-context {
     font-size: 13px;
     color: var(--ash);
     margin-bottom: 8px;
 }
 
-.project-tech {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--brass);
+.entry-tech-row {
     margin-bottom: 10px;
-    letter-spacing: 0.01em;
 }
 
-.project-description {
+.entry-desc {
     font-size: 14.5px;
     color: var(--ash);
     line-height: 1.7;
-    max-width: 680px;
+    max-width: 660px;
 }
 
-.project-description code {
-    background: var(--ink-raised);
+.entry-desc code {
+    background: var(--void-raised);
     padding: 1px 6px;
     border-radius: 3px;
     font-family: var(--font-mono);
     font-size: 12px;
-    color: var(--rose);
+    color: var(--pink);
 }
 
 /* ==========================================================================
-   Resume tab
+   Resume
    ========================================================================== */
 
 .resume-card {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 20px;
-    max-width: 520px;
+    display: grid;
+    grid-template-columns: minmax(240px, 420px) minmax(200px, 260px);
+    align-items: start;
+    gap: 36px;
+    max-width: 740px;
     padding: 28px;
-    background: var(--ink-raised);
-    border: 1px solid var(--line);
+    background: var(--void-raised);
+    border: 1px solid var(--void-line);
     border-radius: 6px;
 }
 
 .resume-preview {
     width: 100%;
-    aspect-ratio: 8.5 / 11;
     border-radius: 4px;
     overflow: hidden;
-    border: 1px solid var(--line);
-    background: var(--paper);
+    border: 1px solid var(--void-line);
+}
+
+.resume-preview-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    background: var(--void);
+    border-bottom: 1px solid var(--void-line);
+}
+
+.resume-preview-icon {
+    flex-shrink: 0;
+    color: var(--pink);
+}
+
+.resume-preview-name {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: var(--ash);
 }
 
 .resume-preview iframe {
     width: 100%;
-    height: 100%;
+    aspect-ratio: 8.5 / 11;
     border: 0;
     display: block;
+    background: var(--paper);
 }
 
-.resume-card p {
-    font-size: 15px;
+/* Real file facts, computed by script.js from the actual PDF response —
+   never hand-typed, so they can't drift when the resume is replaced. */
+.resume-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding-top: 2px;
+}
+
+.resume-meta-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--void-line);
+}
+
+.resume-meta-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
     color: var(--ash);
 }
 
-.resume-download {
-    display: inline-block;
-    padding: 12px 26px;
-    background: var(--rose);
-    color: var(--paper);
+.resume-meta-value {
     font-family: var(--font-mono);
     font-size: 13px;
-    font-weight: 600;
+    color: var(--paper);
+}
+
+.resume-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.resume-download,
+.resume-open {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 22px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     text-decoration: none;
     border-radius: 4px;
-    transition: transform 0.15s ease, box-shadow 0.2s ease;
+    transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.resume-download {
+    background: var(--pink);
+    color: var(--void);
+    border: 1px solid var(--pink);
 }
 
 .resume-download:hover {
     transform: translateY(-1px);
-    box-shadow: 0 8px 24px rgba(157, 78, 221, 0.35);
+    background: #c1c0f0;
+    /* quaternary/200 — a lighten step up from --pink, still void-text-legible */
+}
+
+.resume-open {
+    background: transparent;
+    color: var(--pink);
+    border: 1px solid var(--pink);
+}
+
+.resume-open:hover {
+    background: var(--pink);
+    color: var(--void);
+    transform: translateY(-1px);
 }
 
 /* ==========================================================================
-   Focus visibility
+   Contact
    ========================================================================== */
 
-a:focus-visible,
-button:focus-visible {
-    outline: 2px solid var(--rose);
-    outline-offset: 3px;
+.contact-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 560px;
+    margin-top: 4px;
+}
+
+/* Each row is a non-interactive wrapper around two independent controls —
+   the platform link and a standalone copy button — since a <button>
+   can't nest inside an <a> without breaking semantics and hit-testing. */
+.contact-row {
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+}
+
+.contact-link {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    border: 1px solid var(--void-line);
+    border-radius: 8px;
+    text-decoration: none;
+    transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+}
+
+.contact-link:hover,
+.contact-link:focus-visible {
+    border-color: var(--pink);
+    background: var(--pink-soft);
+    transform: translateX(4px);
+}
+
+.contact-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--void-raised);
+    border: 1.5px solid var(--void-line);
+    color: var(--pink);
+    flex-shrink: 0;
+    transition: border-color 0.18s ease;
+}
+
+.contact-link:hover .contact-badge,
+.contact-link:focus-visible .contact-badge {
+    border-color: var(--pink);
+}
+
+.contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.contact-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ash);
+}
+
+.contact-handle {
+    font-size: 15px;
+    color: var(--paper);
+}
+
+.contact-copy {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    border-radius: 8px;
+    background: transparent;
+    border: 1px solid var(--void-line);
+    color: var(--ash);
+    transition: border-color 0.18s ease, color 0.18s ease, background 0.18s ease;
+}
+
+.contact-copy:hover,
+.contact-copy:focus-visible {
+    border-color: var(--pink);
+    color: var(--pink);
+}
+
+.contact-copy-check {
+    display: none;
+}
+
+.contact-copy.is-copied {
+    border-color: var(--green);
+    color: var(--green);
+    background: var(--green-dim);
+}
+
+.contact-copy.is-copied .contact-copy-icon {
+    display: none;
+}
+
+.contact-copy.is-copied .contact-copy-check {
+    display: block;
 }
 
 /* ==========================================================================
-   Responsive Design
+   Blog — honest empty state
    ========================================================================== */
 
-@media (max-width: 1024px) {
-    .content-wrapper {
-        grid-template-columns: 270px 1fr;
-        gap: 60px;
-    }
+.empty-state {
+    padding: 36px 0 12px;
+    max-width: 480px;
 }
 
-@media (max-width: 768px) {
-    .main-container {
-        padding: 44px 16px;
+.empty-ring {
+    display: block;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: 2px solid var(--void-line);
+    margin-bottom: 22px;
+    position: relative;
+}
+
+.empty-ring::after {
+    content: '';
+    position: absolute;
+    inset: 12px;
+    border-radius: 50%;
+    border: 1.5px solid var(--void-line);
+}
+
+.empty-title {
+    font-family: var(--font-display);
+    font-size: 19px;
+    font-weight: 600;
+    color: var(--paper);
+    margin-bottom: 8px;
+}
+
+.empty-body {
+    font-size: 14.5px;
+    color: var(--ash);
+    line-height: 1.7;
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@media (max-width: 640px) {
+    .hit-circle {
+        top: 36%;
     }
 
-    .content-wrapper {
-        grid-template-columns: 1fr;
-        gap: 48px;
+    .gate {
+        padding-bottom: 34vh;
     }
 
-    .profile-column {
+    .gate-name {
+        margin-top: 0;
+    }
+
+    .mode-fan {
+        position: fixed;
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: auto;
+        height: auto;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        padding: 18px 16px calc(18px + env(safe-area-inset-bottom));
+        background: linear-gradient(to top, var(--void) 60%, transparent);
+    }
+
+    body.is-entered .mode-fan {
+        top: auto;
+    }
+
+    .mode-item {
         position: static;
+        margin: 0;
+        width: 72px;
+        transform: none !important;
+        transition: opacity 0.28s ease;
+        transition-delay: calc(var(--i) * 45ms);
     }
 
-    .profile-card {
-        align-items: center;
-        text-align: center;
+    body.is-open .mode-item {
+        transform: none !important;
     }
 
-    .profile-image.hit-circle {
-        margin-left: auto;
-        margin-right: auto;
+    .mode-icon {
+        width: 46px;
+        height: 46px;
     }
 
-    .fan-menu {
-        justify-content: center;
+    .stage-bar {
+        padding-left: 96px;
     }
 
-    .contact-info {
-        align-items: center;
+    .stage {
+        padding-top: 96px;
     }
 
-    .tab-panel>h3 {
-        font-size: 24px;
-    }
-
-    .timeline {
-        margin-left: 0;
-    }
-
-    .timeline-line,
-    .timeline-dot {
-        display: none;
-    }
-
-    .experience-item {
-        padding: 16px 0;
-        border-top: 1px solid var(--line);
-    }
-
-    .skill-tags {
-        margin-left: 0;
-        justify-content: center;
-    }
-
-    .skill-category-header {
-        justify-content: center;
-    }
-
-    .hobby-tags {
-        justify-content: center;
-    }
-
-    .education-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .education-meta {
-        align-items: flex-start;
-        text-align: left;
+    .resume-card {
+        grid-template-columns: 1fr;
+        max-width: 420px;
     }
 }
 
 @media (max-width: 480px) {
-    .profile-card h1 {
-        font-size: 27px;
+    .panel h2 {
+        font-size: 24px;
     }
 
-    .tab-panel>h3 {
-        font-size: 21px;
+    .timeline {
+        margin-left: 14px;
+        padding-left: 16px;
     }
 
-    .experience-header {
+    .record-head,
+    .timeline-head,
+    .entry-head {
         flex-direction: column;
+    }
+
+    .record-meta {
         align-items: flex-start;
-    }
-
-    .experience-header h4 {
-        font-size: 17px;
-    }
-
-    .skill-tags {
-        gap: 6px;
-    }
-
-    .skill-tag {
-        font-size: 11px;
-        padding: 4px 10px;
-    }
-
-    .fan-item {
-        gap: 4px;
-    }
-
-    .fan-icon {
-        width: 34px;
-        height: 34px;
-    }
-
-    .fan-label {
-        font-size: 9px;
+        text-align: left;
     }
 }
 
