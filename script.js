@@ -1,319 +1,92 @@
 (function () {
     'use strict';
 
-    var body = document.body;
-    var hitCircle = document.getElementById('hitCircle');
-    var modeFan = document.getElementById('modeFan');
-    var modeItems = Array.prototype.slice.call(modeFan.querySelectorAll('.mode-item'));
-    var gateHint = document.getElementById('gateHint');
-    var stage = document.getElementById('stage');
-    var stageExit = document.getElementById('stageExit');
+    var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
     var panels = Array.prototype.slice.call(document.querySelectorAll('.panel'));
+    var DEFAULT_PANEL = 'summary';
 
-    var desktopQuery = window.matchMedia('(min-width: 641px)');
-    var activeSection = 'about';
-
-    // Gate state only: a full radial ring of icons around the large centered
-    // hit-circle.
-    function positionFan() {
-        if (!desktopQuery.matches) return;
-        if (body.classList.contains('is-entered')) return;
-
-        var n = modeItems.length;
-        var radius = Math.min(200, window.innerWidth * 0.28, window.innerHeight * 0.26);
-
-        modeItems.forEach(function (item, i) {
-            // Offset off the compass points: nothing lands due north (crowds
-            // the badge) or due south (crowds the name/tagline).
-            var deg = -60 + (360 / n) * i;
-            var rad = (deg * Math.PI) / 180;
-            var x = Math.cos(rad) * radius;
-            var y = Math.sin(rad) * radius;
-            item.style.setProperty('--tx', x.toFixed(1) + 'px');
-            item.style.setProperty('--ty', y.toFixed(1) + 'px');
-        });
+    // The hash is the source of truth, so tabs are linkable and the browser's
+    // back button works. Hashes that aren't a panel (like #contact) resolve to
+    // the panel that holds them.
+    function panelForHash() {
+        var id = decodeURIComponent(location.hash.slice(1));
+        if (!id) return DEFAULT_PANEL;
+        var target = document.getElementById(id);
+        var panel = target && target.closest('.panel');
+        return panel ? panel.id : DEFAULT_PANEL;
     }
 
-    // Docked state: a jog-wheel. Items sit on a ring around the small
-    // avatar; `rotation` spins that ring (wheel, drag, keyboard focus, or
-    // landing on a section), and only the arc facing into the open canvas
-    // stays legible — full opacity near the window's center, fading out
-    // and finally hidden/non-interactive past it, so three read clearly
-    // and the rest are dialed in rather than laid in a line.
-    var FAN_RADIUS = 95;
-    var WINDOW_CENTER = 45;
-    var FADE_FULL = 65;
-    var FADE_ZERO = 125;
-    var SLOT_STEP = 360 / modeItems.length;
-    var rotation = WINDOW_CENTER;
-    var snapTimer;
-
-    // Wheel/drag rotate the dial from anywhere in this corner zone, not
-    // just when the pointer is precisely over one of the small icons —
-    // the fan's own box is 0x0, so without this a real hover target would
-    // only ever be the handful of scattered icon discs.
-    var DIAL_ZONE = 230;
-    function inDialZone(x, y) {
-        return x <= DIAL_ZONE && y <= DIAL_ZONE;
-    }
-
-    function angleDelta(a, b) {
-        return (((a - b) % 360) + 540) % 360 - 180;
-    }
-
-    function renderDockedFan() {
-        modeItems.forEach(function (item, i) {
-            var angle = i * SLOT_STEP + rotation;
-            var rad = (angle * Math.PI) / 180;
-            var x = Math.cos(rad) * FAN_RADIUS;
-            var y = Math.sin(rad) * FAN_RADIUS;
-            var dist = Math.abs(angleDelta(angle, WINDOW_CENTER));
-            var opacity;
-            if (dist <= FADE_FULL) {
-                opacity = 1;
-            } else if (dist >= FADE_ZERO) {
-                opacity = 0;
-            } else {
-                opacity = 1 - (dist - FADE_FULL) / (FADE_ZERO - FADE_FULL);
-            }
-            item.style.transform = 'translate(' + x.toFixed(1) + 'px, ' + y.toFixed(1) + 'px) scale(1)';
-            item.style.opacity = opacity.toFixed(3);
-            item.style.pointerEvents = opacity > 0.15 ? 'auto' : 'none';
-        });
-    }
-
-    function resetDockedFanStyles() {
-        modeItems.forEach(function (item) {
-            item.style.removeProperty('transform');
-            item.style.removeProperty('opacity');
-            item.style.removeProperty('pointer-events');
-        });
-    }
-
-    function snapRotation() {
-        var nearest = Math.round((rotation - WINDOW_CENTER) / SLOT_STEP) * SLOT_STEP + WINDOW_CENTER;
-        rotation = nearest;
-        renderDockedFan();
-    }
-
-    function rotateToIndex(i) {
-        rotation = WINDOW_CENTER - i * SLOT_STEP;
-    }
-
-    function setFanOpen(open, viaKeyboard) {
-        body.classList.toggle('is-open', open);
-        hitCircle.setAttribute('aria-expanded', open ? 'true' : 'false');
-
-        if (open) {
-            if (body.classList.contains('is-entered')) {
-                if (desktopQuery.matches) renderDockedFan();
-            } else {
-                positionFan();
-            }
-            gateHint.textContent = 'Choose where to go';
-            if (viaKeyboard) {
-                var first = modeItems[0];
-                if (first) first.focus();
-            }
-        } else {
-            gateHint.textContent = 'Click to select a section';
-            clearTimeout(snapTimer);
-            resetDockedFanStyles();
-        }
-    }
-
-    function isFanOpen() {
-        return body.classList.contains('is-open');
-    }
-
-    function setActiveMode(section) {
-        modeItems.forEach(function (item) {
-            item.classList.toggle('is-active', item.getAttribute('data-section') === section);
-        });
-    }
-
-    function showSection(section) {
-        activeSection = section;
+    function showPanel(id) {
         panels.forEach(function (panel) {
-            panel.hidden = panel.getAttribute('data-panel') !== section;
+            var active = panel.id === id;
+            panel.hidden = !active;
+            panel.classList.toggle('is-active', active);
         });
-        setActiveMode(section);
-
-        var idx = modeItems.findIndex(function (item) {
-            return item.getAttribute('data-section') === section;
-        });
-        if (idx >= 0) rotateToIndex(idx);
-    }
-
-    function enterStage(section) {
-        showSection(section);
-        stage.hidden = false;
-        // Force layout so the hidden -> visible swap doesn't collapse into the class toggle.
-        // eslint-disable-next-line no-unused-expressions
-        stage.offsetHeight;
-        requestAnimationFrame(function () {
-            body.classList.add('is-entered');
-        });
-        positionFan();
-    }
-
-    function exitStage() {
-        body.classList.remove('is-entered');
-        positionFan();
-
-        var handled = false;
-        var onEnd = function (e) {
-            if (e.target !== stage || e.propertyName !== 'opacity') return;
-            handled = true;
-            stage.removeEventListener('transitionend', onEnd);
-            stage.hidden = true;
-        };
-        stage.addEventListener('transitionend', onEnd);
-        setTimeout(function () {
-            if (!handled) {
-                stage.removeEventListener('transitionend', onEnd);
-                stage.hidden = true;
-            }
-        }, 700);
-
-        hitCircle.focus();
-    }
-
-    hitCircle.addEventListener('click', function (e) {
-        setFanOpen(!isFanOpen(), e.detail === 0);
-    });
-
-    modeItems.forEach(function (item, i) {
-        item.addEventListener('click', function () {
-            var section = item.getAttribute('data-section');
-            setFanOpen(false);
-
-            if (body.classList.contains('is-entered')) {
-                showSection(section);
+        tabs.forEach(function (tab) {
+            if (tab.getAttribute('href') === '#' + id) {
+                tab.setAttribute('aria-current', 'page');
             } else {
-                enterStage(section);
+                tab.removeAttribute('aria-current');
+            }
+        });
+    }
+
+    function onHashChange() {
+        var id = panelForHash();
+        showPanel(id);
+
+        var target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+        if (target && target.id !== id) {
+            target.scrollIntoView();
+        } else {
+            window.scrollTo(0, 0);
+            var heading = document.getElementById(id + '-title');
+            if (heading) heading.focus({ preventScroll: true });
+        }
+    }
+
+    window.addEventListener('hashchange', onHashChange);
+    showPanel(panelForHash());
+
+    // Document switcher on the Resume / CV tab. The iframe is replaced rather
+    // than re-pointed, since changing its src would add a browser history entry.
+    var docOptions = Array.prototype.slice.call(document.querySelectorAll('.doc-option'));
+    var docFrame = document.getElementById('docFrame');
+    var docDownload = document.getElementById('docDownload');
+    var docOpen = document.getElementById('docOpen');
+
+    function selectDoc(option) {
+        var href = option.getAttribute('href');
+        var title = option.getAttribute('data-title');
+
+        docOptions.forEach(function (other) {
+            if (other === option) {
+                other.setAttribute('aria-current', 'true');
+            } else {
+                other.removeAttribute('aria-current');
             }
         });
 
-        // Tabbing to an item outside the visible window brings it into
-        // view by spinning the dial to center it, same as a horizontal
-        // scroller auto-revealing a focused child.
-        item.addEventListener('focus', function () {
-            if (!body.classList.contains('is-entered') || !isFanOpen() || !desktopQuery.matches) return;
-            clearTimeout(snapTimer);
-            rotateToIndex(i);
-            renderDockedFan();
+        var iframe = document.createElement('iframe');
+        iframe.src = href + '#toolbar=0&navpanes=0&view=FitH';
+        iframe.title = title + ' preview';
+        docFrame.replaceChild(iframe, docFrame.querySelector('iframe'));
+
+        docDownload.href = href;
+        docDownload.setAttribute('download', option.getAttribute('data-name'));
+        docOpen.href = href;
+    }
+
+    docOptions.forEach(function (option) {
+        option.addEventListener('click', function (e) {
+            e.preventDefault();
+            selectDoc(option);
         });
     });
 
-    stageExit.addEventListener('click', exitStage);
-
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && isFanOpen()) {
-            setFanOpen(false);
-            hitCircle.focus();
-        }
-    });
-
-    document.addEventListener('click', function (e) {
-        if (!isFanOpen()) return;
-        if (hitCircle.contains(e.target) || modeFan.contains(e.target)) return;
-        setFanOpen(false);
-    });
-
-    var resizeTimer;
-    window.addEventListener('resize', function () {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(function () {
-            if (!desktopQuery.matches) resetDockedFanStyles();
-            positionFan();
-        }, 120);
-    });
-
-    // Wheel spins the dial — from anywhere in the corner zone, not just
-    // while hovering a specific icon — a plain vertical mouse wheel works
-    // just like a horizontal trackpad gesture would. Outside the zone,
-    // wheel behaves normally (page/stage scroll is never hijacked).
-    document.addEventListener('wheel', function (e) {
-        if (!body.classList.contains('is-entered') || !isFanOpen() || !desktopQuery.matches) return;
-        if (!inDialZone(e.clientX, e.clientY)) return;
-        e.preventDefault();
-        var delta = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
-        rotation += delta * 0.25;
-        renderDockedFan();
-        clearTimeout(snapTimer);
-        snapTimer = setTimeout(snapRotation, 180);
-    }, { passive: false });
-
-    // Drag spins the dial like a jog wheel, from anywhere in the same
-    // corner zone. A small movement threshold keeps a plain tap-to-navigate
-    // click working normally, and starting on the avatar itself is
-    // excluded so it keeps its own click-to-toggle behavior undisturbed.
-    var dragState = null;
-    var DRAG_THRESHOLD = 6;
-    var suppressNextClick = false;
-
-    // A drag gesture still ends in a native click at pointerup; swallow
-    // that one synthetic click (in the capture phase, ahead of every other
-    // click handler) so a rotate never also fires item navigation or the
-    // click-outside-closes-fan listener below.
-    document.addEventListener('click', function (e) {
-        if (!suppressNextClick) return;
-        suppressNextClick = false;
-        e.stopPropagation();
-        e.preventDefault();
-    }, true);
-
-    document.addEventListener('pointerdown', function (e) {
-        if (!body.classList.contains('is-entered') || !isFanOpen() || !desktopQuery.matches) return;
-        if (!inDialZone(e.clientX, e.clientY) || hitCircle.contains(e.target)) return;
-        dragState = { startX: e.clientX, startRotation: rotation, dragging: false, pointerId: e.pointerId };
-    });
-
-    document.addEventListener('pointermove', function (e) {
-        if (!dragState || dragState.pointerId !== e.pointerId) return;
-        var dx = e.clientX - dragState.startX;
-        if (!dragState.dragging && Math.abs(dx) > DRAG_THRESHOLD) {
-            dragState.dragging = true;
-            clearTimeout(snapTimer);
-        }
-        if (dragState.dragging) {
-            e.preventDefault();
-            rotation = dragState.startRotation + dx * 0.6;
-            renderDockedFan();
-        }
-    }, { passive: false });
-
-    function endDrag(e) {
-        if (!dragState || dragState.pointerId !== e.pointerId) return;
-        var wasDragging = dragState.dragging;
-        dragState = null;
-        if (wasDragging) {
-            snapRotation();
-            suppressNextClick = true;
-        }
-    }
-    document.addEventListener('pointerup', endDrag);
-    document.addEventListener('pointercancel', endDrag);
-
-    // Resume file size, read from the actual response so it can never go
-    // stale if the PDF is ever replaced with a different one.
-    function computeResumeMeta() {
-        var targets = document.querySelectorAll('[data-resume-size]');
-        if (!targets.length) return;
-        fetch('etc/resume.pdf', { method: 'HEAD' }).then(function (res) {
-            var len = res.headers.get('content-length');
-            if (!len) return;
-            var kb = Math.round(parseInt(len, 10) / 1024);
-            targets.forEach(function (el) { el.textContent = kb + ' KB'; });
-        }).catch(function () { /* leave the em dash placeholder */ });
-    }
-    computeResumeMeta();
-
-    // Contact rows carry a standalone copy button next to the platform
-    // link, with a brief rank-green "confirmed" flash instead of a
-    // separate toast.
-    document.querySelectorAll('.contact-copy').forEach(function (btn) {
+    // Contact rows carry a copy button next to the link, with a brief check
+    // mark as confirmation instead of a separate toast.
+    document.querySelectorAll('.copy').forEach(function (btn) {
         var originalLabel = btn.getAttribute('aria-label');
         var resetTimer;
         btn.addEventListener('click', function () {
@@ -327,10 +100,82 @@
                     btn.classList.remove('is-copied');
                     btn.setAttribute('aria-label', originalLabel);
                 }, 1600);
-            }).catch(function () { /* clipboard permission denied; link itself still works */ });
+            }).catch(function () { /* clipboard permission denied; the link itself still works */ });
         });
     });
 
-    setActiveMode(activeSection);
-    positionFan();
+    // GitHub graph: live data, with a saved copy if the API is down
+    var commitGraph = document.getElementById('commitGraph');
+    var commitTotal = document.getElementById('commitTotal');
+    var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    function getJson(url) {
+        return fetch(url).then(function (res) {
+            if (!res.ok) throw new Error(res.status);
+            return res.json();
+        });
+    }
+
+    function make(className) {
+        var el = document.createElement('div');
+        el.className = className;
+        return el;
+    }
+
+    function renderHalf(weeks) {
+        var half = make('commits-half');
+        var months = make('commits-months');
+        var grid = make('commits-weeks');
+        var lastMonth = null;
+        var lastLabel = null;
+
+        weeks.forEach(function (week, i) {
+            var firstDay = week.filter(Boolean)[0];
+            var month = Number(firstDay.date.slice(5, 7)) - 1;
+            if (month !== lastMonth && i < weeks.length - 2) {
+                var label = document.createElement('span');
+                label.textContent = MONTHS[month];
+                label.style.gridColumn = (i + 1) + ' / span 3';
+                // A partial month at the start would run into the next label
+                if (lastLabel && i - lastLabel.week < 3) months.removeChild(lastLabel.el);
+                months.appendChild(label);
+                lastLabel = { el: label, week: i };
+            }
+            lastMonth = month;
+
+            week.forEach(function (day) {
+                var square = make('commits-day' + (day ? '' : ' is-empty'));
+                if (day) {
+                    square.dataset.level = day.level;
+                    square.title = day.count + (day.count === 1 ? ' contribution on ' : ' contributions on ') + day.date;
+                }
+                grid.appendChild(square);
+            });
+        });
+
+        half.appendChild(months);
+        half.appendChild(grid);
+        return half;
+    }
+
+    function renderCommits(data) {
+        var weeks = [];
+        data.contributions.forEach(function (day) {
+            var weekday = new Date(day.date + 'T00:00:00').getDay();
+            if (!weeks.length || weekday === 0) weeks.push([null, null, null, null, null, null, null]);
+            weeks[weeks.length - 1][weekday] = day;
+        });
+
+        var middle = Math.ceil(weeks.length / 2);
+        commitGraph.appendChild(renderHalf(weeks.slice(0, middle)));
+        commitGraph.appendChild(renderHalf(weeks.slice(middle)));
+        commitTotal.textContent = data.total.lastYear;
+    }
+
+    if (commitGraph) {
+        getJson('https://github-contributions-api.jogruber.de/v4/alchin2?y=last')
+            .catch(function () { return getJson('etc/contributions.json'); })
+            .then(renderCommits)
+            .catch(function () { /* no data; the link to GitHub still works */ });
+    }
 })();
