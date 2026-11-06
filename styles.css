@@ -312,6 +312,10 @@ code {
     line-height: 1.4;
 }
 
+.hero-proof {
+    margin-top: 12px;
+}
+
 .actions {
     display: flex;
     flex-wrap: wrap;
