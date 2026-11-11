@@ -304,6 +304,10 @@
             <div class="wrap">
                 <div class="bento">
                     <article class="cell cell--safestreets rise" style="--i:2">
+                        <div class="shot shot--wide">
+                            <img src="etc/figures/projects/safestreets.webp" width="824" height="515" loading="lazy"
+                                alt="SafeStreets report for an intersection: a Street View photo with the flagged hazard, a before and after toggle, and generated tweet and council letter drafts below.">
+                        </div>
                         <p class="award">Best Use of Claude, UC Berkeley AI Hackathon 2026</p>
                         <h2>SafeStreets</h2>
                         <p>A multi-agent system that turns street imagery and public records into ready-to-send city council letters. Won among 200+ projects and 1,000+ hackers with a team of 4.</p>
@@ -321,6 +325,10 @@
                     </figure>
 
                     <article class="cell cell--recall">
+                        <div class="shot">
+                            <img src="etc/figures/projects/recall.webp" width="1040" height="650" loading="lazy"
+                                alt="Webcam frame of a living room with detection boxes around a bag, glasses, wallet, and remote, and outlined couch and table surfaces.">
+                        </div>
                         <p class="award">Cal Hacks 13.0</p>
                         <h2>Recall</h2>
                         <p>A real-time assistive system for people with dementia that tracks objects in a room from one webcam, using open-vocabulary detection and a temporal state model that infers occluded objects' locations. I led vision and state inference.</p>
@@ -333,7 +341,11 @@
                     </article>
 
                     <article class="cell cell--tss">
-                        <p class="award">Open source, 300+ users</p>
+                        <div class="shot">
+                            <img src="etc/figures/projects/tssplusplus.webp" width="1008" height="630" loading="lazy"
+                                alt="TSS++ map tab showing a Monday class schedule as numbered stops and a walking route across the UCSD campus.">
+                        </div>
+                        <p class="award">Open source, 1,000+ users</p>
                         <h2>TSS++</h2>
                         <p>An open-source course planner built as an alternative to UCSD's new student system, with prerequisite graphs, conflict detection, campus walking routes, and .ics export.</p>
                         <p>Reverse-engineered the undocumented TSS OData API from network traffic to scrape each quarter's sections, and built transitive prerequisite trees with AND/OR groups and cycle detection across 5,700+ courses. A daily GitHub Actions workflow detects newly published quarters and scrapes them automatically.</p>
@@ -348,6 +360,10 @@
                 <h2 class="more-title">More projects</h2>
                 <div class="more">
                     <article>
+                        <div class="shot">
+                            <img src="etc/figures/projects/craiyons.webp" width="1280" height="800" loading="lazy"
+                                alt="CrAIyons game screen: a hand-drawn apple on the canvas, a four-player list, and the AI guesser panel ranking apple first with a 93% score.">
+                        </div>
                         <h3>CrAIyons</h3>
                         <p class="meta">Tech Lead, team of 6</p>
                         <p>Multiplayer drawing game scored by computer vision. Trained 4 category-specific CNNs over 60 QuickDraw classes for live in-game scoring, and replaced softmax scoring with class-centroid cosine similarity, raising one model's similarity score from 0.56 to 0.63.</p>
@@ -355,6 +371,10 @@
                         <p class="links"><a href="https://github.com/acmucsd-projects/su26-ai-team-3" target="_blank" rel="noopener">GitHub<svg class="icon" aria-hidden="true"><use href="#i-arrow-up-right"/></svg></a></p>
                     </article>
                     <article>
+                        <div class="shot">
+                            <img src="etc/figures/projects/classgraph.webp" width="1280" height="800" loading="lazy"
+                                alt="ClassGraph prerequisite graph for CSE 100, with prerequisite courses grouped into OR boxes.">
+                        </div>
                         <h3>ClassGraph</h3>
                         <p class="meta">1st Place, DS3 Winter 2026 Projects</p>
                         <p>Engineered scraping pipelines to collect and transform 2,500+ courses into a structured SQL database with AST-backed representations. Designed a TypeScript prerequisite resolver parsing nested AND/OR logic and rendering dependency DAGs in D3.js, with a CI/CD pipeline that republishes new courses each quarter.</p>
@@ -362,6 +382,10 @@
                         <p class="links"><a href="https://github.com/nehalc200/classgraph" target="_blank" rel="noopener">GitHub<svg class="icon" aria-hidden="true"><use href="#i-arrow-up-right"/></svg></a></p>
                     </article>
                     <article>
+                        <div class="shot">
+                            <img src="etc/figures/projects/swapu.webp" width="1280" height="800" loading="lazy"
+                                alt="SwapU feed of student listings such as a desk, a hoodie, textbooks, a calculator, and a camera, with category filters.">
+                        </div>
                         <h3>SwapU</h3>
                         <p class="meta">DiamondHacks 2026</p>
                         <p>Student item-swap marketplace where Fetch.ai agents negotiate multi-item trades. Built the FastAPI backend (REST, WebSockets, Supabase PostgreSQL, S3, auth), integrated BrowserUse agents for real-time market prices and confidence scores, and validated the negotiation flow against 128 mock listings.</p>
@@ -372,6 +396,10 @@
                         </p>
                     </article>
                     <article>
+                        <div class="shot">
+                            <img src="etc/figures/projects/quorum.webp" width="1280" height="800" loading="lazy"
+                                alt="Quorum issue page for the Portsmouth Square renovation, with an AI-generated summary and recommended actions.">
+                        </div>
                         <h3>Quorum</h3>
                         <p class="meta">JacHacks SF 2026</p>
                         <p>Civic advocacy generator that turns a community's position on a local issue into a tactical organizing kit: plain-language briefs, procedural playbooks with source-backed facts, three recourse paths, precedent-based strategy, and a bilingual outreach packet.</p>
@@ -382,6 +410,10 @@
                         </p>
                     </article>
                     <article>
+                        <div class="shot">
+                            <img src="etc/figures/projects/webreg-to-ics.webp" width="1280" height="800" loading="lazy"
+                                alt="WebReg to ICS page with a PDF drop zone, a weekly schedule preview, and a download button.">
+                        </div>
                         <h3>WebReg to ICS</h3>
                         <p>Converts UCSD WebReg schedule PDFs into importable <code>.ics</code> calendar files, with a weekly schedule preview before download. Parses course data from the PDF, generates recurring lectures, skips UCSD holidays, and adds midterms and finals as one-off events.</p>
                         <p class="tech">Python, FastAPI, PyMuPDF, JavaScript, iCalendar</p>
@@ -391,6 +423,21 @@
                         </p>
                     </article>
                     <article>
+                        <div class="shot">
+                            <img src="etc/figures/projects/mc-diffusion.webp" width="1280" height="800" loading="lazy"
+                                alt="Grid of Minecraft sword textures comparing originals with VAE reconstructions for training and validation samples.">
+                        </div>
+                        <h3>Minecraft Texture Generation</h3>
+                        <p class="meta">Research project</p>
+                        <p>From-scratch walk through the history of image generation in PyTorch on Minecraft item textures. Roadmap: VAEs, VQ-VAE, VQGAN, flow matching, RAEs, and latent diffusion.</p>
+                        <p class="tech">PyTorch, VAE, VQ-VAE, VQGAN, DDPM, latent diffusion, flow matching, RAE</p>
+                        <p class="links"><a href="https://github.com/alchin2/mc-diffusion" target="_blank" rel="noopener">GitHub<svg class="icon" aria-hidden="true"><use href="#i-arrow-up-right"/></svg></a></p>
+                    </article>
+                    <article>
+                        <div class="shot">
+                            <img src="etc/figures/projects/spotify-recommender.webp" width="1280" height="800" loading="lazy"
+                                alt="Gradio interface for the recommender: Mr. Brightside selected in a song dropdown, with five recommended tracks listed beside it.">
+                        </div>
                         <h3>Spotify Recommender System</h3>
                         <p>Two-tower neural collaborative filtering model mapping user preferences and 900,000+ tracks into a shared latent space. Tuned embedding size and epochs, achieving 0.84 ROC-AUC and a 30% reduction in validation loss.</p>
                         <p class="tech">Python, PyTorch, pandas, NumPy</p>
@@ -401,13 +448,6 @@
                         <p class="meta">In progress</p>
                         <p>Vehicle routing optimizer for LionDanceME operations, modeling multi-stop routing as a constrained Traveling Salesman Problem using OpenStreetMap road networks. OR-Tools enforces time-window and overlap constraints across 40+ daily events.</p>
                         <p class="tech">Google Maps API, Python, H3, pandas, React</p>
-                    </article>
-                    <article>
-                        <h3>Minecraft Texture Generation</h3>
-                        <p class="meta">Research project</p>
-                        <p>From-scratch walk through the history of image generation in PyTorch on Minecraft item textures. Roadmap: VAEs, VQ-VAE, VQGAN, flow matching, RAEs, and latent diffusion.</p>
-                        <p class="tech">PyTorch, VAE, VQ-VAE, VQGAN, DDPM, latent diffusion, flow matching, RAE</p>
-                        <p class="links"><a href="https://github.com/alchin2/mc-diffusion" target="_blank" rel="noopener">GitHub<svg class="icon" aria-hidden="true"><use href="#i-arrow-up-right"/></svg></a></p>
                     </article>
                 </div>
             </div>

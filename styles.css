@@ -788,6 +788,42 @@ code {
     border: 1px solid var(--rule);
 }
 
+/* Screenshots sit in a flat window frame so mixed sources read as one set */
+.shot {
+    margin: 0 8px 28px 0;
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    box-shadow: 8px 8px 0 var(--sky-300);
+}
+
+.shot::before {
+    content: '';
+    display: block;
+    height: 24px;
+    border-bottom: 1px solid var(--ink);
+    background: radial-gradient(circle, var(--sky-500) 3.5px, transparent 4px) 12px 50% / 8px 8px no-repeat,
+        radial-gradient(circle, var(--sky-300) 3.5px, transparent 4px) 26px 50% / 8px 8px no-repeat,
+        radial-gradient(circle, var(--sky-200) 3.5px, transparent 4px) 40px 50% / 8px 8px no-repeat,
+        var(--sky-100);
+}
+
+.shot img {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    object-position: top;
+}
+
+/* Shorter crop keeps the lead card closer to the graph beside it */
+.shot--wide img {
+    aspect-ratio: 16 / 7;
+}
+
+.more .shot {
+    margin-bottom: 24px;
+    box-shadow: 8px 8px 0 var(--sky-200);
+}
+
 .award {
     margin-bottom: 8px;
     color: var(--blue);
