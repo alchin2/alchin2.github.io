@@ -814,11 +814,6 @@ code {
     object-position: top;
 }
 
-/* Shorter crop keeps the lead card closer to the graph beside it */
-.shot--wide img {
-    aspect-ratio: 16 / 7;
-}
-
 .more .shot {
     margin-bottom: 24px;
     box-shadow: 8px 8px 0 var(--sky-200);
